@@ -126,3 +126,14 @@ function omens_audit_host() {
 	$host = wp_parse_url( home_url(), PHP_URL_HOST );
 	return strtolower( (string) $host );
 }
+
+/**
+ * Edit link for an entry that works with no current user (WP-CLI), unlike
+ * get_edit_post_link(), which returns null when nobody is logged in.
+ *
+ * @param int $post_id Post ID.
+ * @return string
+ */
+function omens_audit_edit_link( $post_id ) {
+	return admin_url( 'post.php?post=' . (int) $post_id . '&action=edit' );
+}

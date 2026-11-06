@@ -1,0 +1,17 @@
+{
+  "_comment": "Ported from omens-wp-plugin-media includes/format.php (omens_media_meaningless_patterns). Matched case-insensitively against the extension-stripped, suffix-stripped stem. Keep the two in step; the plugin prefers the live function when that plugin is active.",
+  "patterns": [
+    "^_?(img|dsc|dscn|dscf|mg|pict|mov|vid)[-_]?\\d+([-_].*)?$",
+    "^_?[a-z0-9]{2,4}\\d{4,}$",
+    "^pxl_\\d{8}_\\d+$",
+    "^\\d{8}[-_]\\d{6}",
+    "^(screen[- _]?shot|screenshot|screen[- _]?recording)",
+    "^(pasted|paste)[- _]?(image|graphic)?",
+    "^(unnamed|untitled|image|photo|picture|download|file|copy|final|new|temp|tmp|asset)[-_ ]?\\d*$",
+    "^photo-\\d{10,}",
+    "^[a-f0-9]{8}-?[a-f0-9]{4}-?[a-f0-9]{4}",
+    "^[a-f0-9]{16,}$",
+    "^\\d+$",
+    "^[a-z]$"
+  ]
+}

@@ -175,6 +175,28 @@ class Omens_Audit_Context {
 	}
 
 	/**
+	 * Parsed DOMs by URL.
+	 *
+	 * @var array<string, DOMDocument|null>
+	 */
+	private $doms = array();
+
+	/**
+	 * Fetch and parse a page; null when it could not be fetched.
+	 *
+	 * @param string $url URL on this site.
+	 * @return DOMDocument|null
+	 */
+	public function dom( $url ) {
+		$url = (string) $url;
+		if ( ! array_key_exists( $url, $this->doms ) ) {
+			$html               = $this->fetch( $url );
+			$this->doms[ $url ] = null === $html ? null : omens_audit_dom( $html );
+		}
+		return $this->doms[ $url ];
+	}
+
+	/**
 	 * URLs that could not be fetched this run, with the reason.
 	 *
 	 * @return array<string, string>

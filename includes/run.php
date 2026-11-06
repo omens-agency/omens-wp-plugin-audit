@@ -53,6 +53,11 @@ function omens_audit_run( array $opts = array(), $progress = null ) {
 						'severity'      => 'info',
 						'title'         => sprintf( '%s did not run', $id ),
 						'summary'       => is_string( $applies ) ? $applies : 'not applicable on this site',
+						'fix'           => array(
+							'route' => 'human',
+							'where' => 'the audit itself',
+							'steps' => array( 'Nothing to do: the check does not apply on this site.' ),
+						),
 						'check_version' => $check->version(),
 					)
 				);

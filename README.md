@@ -61,6 +61,33 @@ Tools > Site Audit in wp-admin shows the same run and has a nonce-checked **Run 
 
 The fingerprint never includes the run date, so the same problem fingerprints the same way every month. Severities: `critical`, `serious`, `moderate`, `minor`, `info` (`info` is never filed). Routes: `code`, `content`, `config`, `vendor`, `human`.
 
+## The checks (version 1)
+
+| Family | Check | Default severity | Route |
+|---|---|---|---|
+| security | `security.php-in-uploads` PHP files under uploads, minus an allowlist (`omens_audit/uploads_allow`) | critical | human |
+| security | `security.admins-without-2fa` administrators with no second factor (WP 2FA, Two Factor, Wordfence) | serious | human |
+| security | `security.file-edit-enabled` `DISALLOW_FILE_EDIT` not true | serious | config |
+| security | `security.debug-display` errors would print to visitors on production | serious | config |
+| currency | `currency.plugins` updates pending, plus a list of plugins with no update channel | moderate | config |
+| currency | `currency.house-plugins` the Omens plugins expected for the build type are installed, active and current | moderate | config |
+| seo | `seo.indexing-blocked` production noindexed, or staging indexable (the host name is cross-checked against `WP_ENVIRONMENT_TYPE`) | critical | config |
+| seo | `seo.sitemap` sitemap unreachable, empty, or listing a noindexed sampled page | serious | config |
+| seo | `seo.description-missing` indexable entries with no stored description, per post type | moderate | content |
+| a11y | `a11y.lang-missing` `<html lang>` missing or not the site locale | serious | code |
+| a11y | `a11y.img-alt-missing` no `alt` (code) or empty `alt` on a non-decorative image (routed) | serious | routed |
+| a11y | `a11y.link-empty` links and buttons with no accessible name (routed by href) | serious | routed |
+| a11y | `a11y.img-alt-filename` alt text that is a filename or meaningless | moderate | routed |
+| legal | `legal.placeholder-live` a template placeholder on a published legal page | critical | content |
+| legal | `legal.page-missing` a legal page missing, unpublished or not linked from the footer | serious (moderate on purchased) | content |
+| legal | `legal.consent-missing` the consent platform's script absent from the home page | serious | config |
+| legal | `legal.tracker-drift` a tracker in a disclosure category the privacy policy does not name | serious or moderate by category | content |
+| legal | `legal.review-overdue` privacy policy or accessibility statement untouched for 12 months | moderate | human |
+
+The two remaining version 1 checks, `baseline.admin-new` and `baseline.mu-plugins-changed`, run in the central audit from the inventories this plugin exports, not on the site.
+
+**Routed** means the content-versus-code rule in `includes/routing.php`: a missing attribute is template code; an empty or bad value is searched for in the entry's `post_content`, its ACF fields, ACF options pages and (for images) the Media Library, and in the theme's own source. Found in editor content only: `content`, naming the field. Found in the theme only: `code`, naming the file. Found in both, or no usable key: confidence `low`, which the fix workflow treats as "propose, do not change". On `purchased` sites `code` becomes `human`.
+
 ## Build type
 
 `custom` means a theme scaffolded from `omens-wp-starter-theme`, detected by the `OMENS_STARTER_VERSION` constant its `functions.php` defines. Everything else is `purchased`, including legacy Omens themes that predate the starter (`build_evidence` says which). On `purchased` sites every `code` route becomes `human` with "theme or child theme; no repo" prepended to `where`. A legacy theme that does have a repo can say so:
@@ -103,6 +130,7 @@ The plugin updates itself from GitHub releases through Plugin Update Checker (ve
 
 ## Developing
 
+- `tools/fixtures.sh [filter]` runs every check's fixtures under `tests/checks/`, one PHP process per case against the WordPress stubs in `tests/bootstrap.php`, and fails if any registered check lacks a `fires` and a `clean` case. The routing rule has one fixture per branch (in the `a11y.img-alt-missing` and `a11y.link-empty` files).
 - `tools/smoke.sh ~/Studio/<site>` symlinks the checkout into a local site and runs the M1 assertions (activation, the three commands, schema, dry run, fingerprint stability, foreign-run refusal, cron, uninstall). Local sites only.
 - `php -l` on every file and `phpcs` (WordPress-Extra, `phpcs.xml.dist`) before a commit.
 - State: one option, `omens_audit_last_run`, not autoloaded, keyed by host and environment. If a change needs more state than that, stop and reread the plan.
