@@ -1,0 +1,35 @@
+<?xml version="1.0"?>
+<ruleset name="Omens Site Audit">
+	<description>WordPress-Extra for the plugin's own code.</description>
+	<file>.</file>
+	<exclude-pattern>vendor/*</exclude-pattern>
+	<exclude-pattern>tests/*</exclude-pattern>
+	<arg name="extensions" value="php"/>
+	<arg value="sp"/>
+	<config name="minimum_wp_version" value="6.4"/>
+	<config name="testVersion" value="8.1-"/>
+	<rule ref="WordPress-Extra">
+		<!-- Generic file names are fine; the class-per-file convention is kept by hand. -->
+		<exclude name="WordPress.Files.FileName"/>
+		<!-- Short, single-purpose functions do not need a docblock on every @param when the type is obvious. -->
+		<exclude name="Squiz.Commenting.FunctionComment.MissingParamComment"/>
+		<!-- House hook names use a slash namespace (omens_audit/checks), like omens/security/* and omens_media/*. -->
+		<exclude name="WordPress.NamingConventions.ValidHookName.UseUnderscores"/>
+	</rule>
+	<rule ref="WordPress.WP.I18n">
+		<properties>
+			<property name="text_domain" type="array">
+				<element value="omens-audit"/>
+			</property>
+		</properties>
+	</rule>
+	<rule ref="WordPress.NamingConventions.PrefixAllGlobals">
+		<properties>
+			<property name="prefixes" type="array">
+				<element value="omens_audit"/>
+				<element value="OMENS_AUDIT"/>
+				<element value="Omens_Audit"/>
+			</property>
+		</properties>
+	</rule>
+</ruleset>

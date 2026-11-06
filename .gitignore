@@ -1,0 +1,8 @@
+.DS_Store
+# Internal planning record: client names, site IDs and SSH usernames. Stays in
+# the synced Library folder, not in the public repo.
+PLAN.md
+CHECKS.md
+KICKOFF.md
+docs/spikes.md
+tests/.sites
