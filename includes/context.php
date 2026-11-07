@@ -125,6 +125,14 @@ class Omens_Audit_Context {
 			$this->failed[ $url ] = 'not on this site; the audit only fetches its own home_url()';
 			return null;
 		}
+		// A site mid-update serves its maintenance page to every request, and that page passed
+		// the rendered checks once as if it were the home page (no footer, so every legal link
+		// "missing"). Refuse to fetch while the .maintenance file is live; the failures surface
+		// as run.fetch-failed and the rendered checks skip the URL.
+		if ( $this->in_maintenance() ) {
+			$this->failed[ $url ] = 'site is in maintenance mode (.maintenance present); rendered checks skipped this run';
+			return null;
+		}
 
 		/**
 		 * Loopback request arguments. Timeout is fixed at 10 seconds per URL
@@ -170,6 +178,13 @@ class Omens_Audit_Context {
 			$this->failed[ $url ] = 'empty body';
 			return null;
 		}
+		// A password gate, "coming soon" or maintenance plugin answers 200 with a page that is
+		// not the site. Checked against the rendered home page once, it reported every footer
+		// link missing. A page with a password field and no main or footer landmark is a gate.
+		if ( omens_audit_looks_gated( $body ) ) {
+			$this->failed[ $url ] = 'response is a password gate or holding page, not the site; rendered checks skipped this URL';
+			return null;
+		}
 		$this->html[ $url ] = $body;
 		return $body;
 	}
@@ -194,6 +209,30 @@ class Omens_Audit_Context {
 			$this->doms[ $url ] = null === $html ? null : omens_audit_dom( $html );
 		}
 		return $this->doms[ $url ];
+	}
+
+	/**
+	 * Whether WordPress is in maintenance mode right now (the .maintenance file
+	 * exists and is under ten minutes old, the same rule core applies).
+	 *
+	 * @return bool
+	 */
+	public function in_maintenance() {
+		if ( function_exists( 'wp_is_maintenance_mode' ) ) {
+			return (bool) wp_is_maintenance_mode();
+		}
+		/**
+		 * Path of the .maintenance file. Tests point it at a temp folder.
+		 *
+		 * @param string $file Default ABSPATH . '.maintenance'.
+		 */
+		$file = (string) apply_filters( 'omens_audit/maintenance_file', ABSPATH . '.maintenance' );
+		if ( ! file_exists( $file ) ) {
+			return false;
+		}
+		$upgrading = 0;
+		include $file; // Defines $upgrading, as core does.
+		return ( (int) $upgrading + 10 * MINUTE_IN_SECONDS ) >= time();
 	}
 
 	/**

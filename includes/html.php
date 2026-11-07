@@ -346,3 +346,32 @@ function omens_audit_is_meaningless( $name ) {
 	}
 	return ! preg_match( '/\p{L}/u', $stem );
 }
+
+/**
+ * Whether an HTML response is a gate or holding page rather than the site:
+ * a password field (or a maintenance/coming-soon title) with no main, nav or
+ * footer landmark. Cheap string tests on purpose; this runs before parsing.
+ *
+ * @param string $html Response body.
+ * @return bool
+ */
+function omens_audit_looks_gated( $html ) {
+	$html         = (string) $html;
+	$has_landmark = preg_match( '/<(main|footer|nav)\b/i', $html ) || preg_match( '/role=["\'](main|contentinfo|navigation)["\']/i', $html );
+	if ( $has_landmark ) {
+		return false;
+	}
+	if ( preg_match( '/<input[^>]+type=["\']password["\']/i', $html ) ) {
+		return true;
+	}
+	if ( preg_match( '/<title>\s*(maintenance|coming soon|under construction|site under maintenance)\b/i', $html ) ) {
+		return true;
+	}
+	/**
+	 * Decide for yourself whether a response is a gate page (for a custom holding page).
+	 *
+	 * @param bool   $gated Default false.
+	 * @param string $html  Response body.
+	 */
+	return (bool) apply_filters( 'omens_audit/looks_gated', false, $html );
+}

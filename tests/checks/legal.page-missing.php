@@ -32,6 +32,30 @@ return array(
 		'setup'  => function ( $t ) use ( $pages ) { $pages( $t, '<a href="/privacy-policy/">Privacy</a><a href="https://example.test/terms-of-use/">Terms</a><a href="/accessibility-statement">Accessibility</a>' ); },
 		'expect' => array( 'count' => 0 ),
 	),
+	'clean_maintenance_mode_skips_rendered_check' => array(
+		'setup'  => function ( $t ) use ( $pages ) {
+			$pages( $t, '' ); // Footer with no legal links, which would fire three "unlinked" findings...
+			$file = $t->file( 'abspath/.maintenance', '<?php $upgrading = ' . time() . '; ?>' );
+			add_filter( 'omens_audit/maintenance_file', function () use ( $file ) { return $file; } );
+		},
+		'expect' => function ( $f, $run, $t ) {
+			$t->assert( 0 === count( $f ), '...but maintenance mode means home was not fetched: got ' . count( $f ) );
+			$fetch_failed = array_filter( $run['findings'], function ( $x ) { return 'run.fetch-failed' === $x['check']; } );
+			$t->assert( count( $fetch_failed ) >= 1 && false !== strpos( reset( $fetch_failed )['summary'], 'maintenance' ), 'expected run.fetch-failed naming maintenance mode' );
+		},
+	),
+	'clean_password_gate_is_not_the_site' => array(
+		'setup'  => function ( $t ) use ( $pages ) {
+			$pages( $t, '' );
+			// Overwrite home with a review gate: 200, no landmarks, a password field.
+			$t->page( '<!doctype html><html lang="en"><head><title>Example</title></head><body><form method="post"><h1>Example</h1><p>This site is in review.</p><input name="gate" type="password"><button>Enter</button></form></body></html>' );
+		},
+		'expect' => function ( $f, $run, $t ) {
+			$t->assert( 0 === count( $f ), 'a gate page must not count as a footer with no legal links: got ' . count( $f ) );
+			$ff = array_filter( $run['findings'], function ( $x ) { return 'run.fetch-failed' === $x['check']; } );
+			$t->assert( count( $ff ) >= 1 && false !== strpos( reset( $ff )['summary'], 'gate' ), 'expected run.fetch-failed naming the gate' );
+		},
+	),
 	'clean_custom_slugs_by_filter' => array(
 		'setup'  => function ( $t ) {
 			$p = omens_test_add_post( array( 'post_type' => 'page', 'post_name' => 'privacy' ) );
