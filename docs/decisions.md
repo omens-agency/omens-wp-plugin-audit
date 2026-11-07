@@ -89,3 +89,12 @@ Sandbox: BugHerd project 550748 "Omens Audit Sandbox", created through the MCP w
 - **`fix.py` is offline and only writes text** (queue, comment, verify, pr-body). Its refusal cases are tested by use: it will not write a comment for a fix-code task on a custom build, and it lists every purchased-theme task under comments whatever its route.
 - **The PM is not assigned on the sandbox.** Lexi is not a member of the sandbox project and adding her would notify her about test tasks; the skill says to report that rather than add a member. On a real board the PM is already a member.
 - **Comments posted through the fix workflow carry no attribution**, per Jake's global rule, and are written for a client to read because this plan's comments are public.
+
+### M5 outcome (2026-11-07)
+
+- **Code finding to PR, with the proof in the PR:** BugHerd sandbox task #28 (`harness.target-size`, the footer address and phone links at 15 px) to `omens-agency/bcca-wp-theme` PR #2 (https://github.com/omens-agency/bcca-wp-theme/pull/2), branch `audit/2026-11-28-footer-phone-target-size`, two files (`library/scss/layout/_footer.scss` and the compiled `library/css/style.css`). Verification: the harness reported the fingerprint before the change and not after; the full merged run went from 76 findings to 75 with nothing new. The PR is open for Jake to merge; a merge to `main` deploys to production through the GitHub integration, which is why the workflow stops there.
+- **Content finding to PM comment, no code:** task #20 (`legal.tracker-drift`, BugHerd script not named in the BCCA privacy policy) received the steps from its own Fix section. The PM was not assigned because she is not a member of the sandbox project.
+- **Purchased-theme code finding left alone:** task #5 (empty social link hard-coded in the Higgs theme) received a comment saying it is a hands-on change with no repo; no branch, no edit.
+- **omens.agency declared custom:** `omens-agency/omens-wp-theme` PR #1 (https://github.com/omens-agency/omens-wp-theme/pull/1) adds the `omens_audit/build_type` filter so the plugin reports the reskin theme as a custom build; verified on the Studio copy before the PR.
+- **Local state restored:** the BCCA Studio checkout is back on `main` with Jake's uncommitted files untouched, the CodeKit project re-enabled, and the review gate constant put back; the BugHerd sandbox holds 28 tasks.
+- **Known residue:** the harness keyboard spec errored in both BCCA runs (as it had on The Peak), so keyboard findings are partial; a harness issue, not an audit one.
