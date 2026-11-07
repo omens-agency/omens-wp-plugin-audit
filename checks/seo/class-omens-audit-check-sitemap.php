@@ -29,7 +29,7 @@ class Omens_Audit_Check_Sitemap extends Omens_Audit_Check_Base {
 	}
 
 	public function applies( Omens_Audit_Context $ctx ) {
-		if ( 'production' !== $ctx->environment || omens_audit_host_looks_nonproduction( $ctx->host ) ) {
+		if ( 'production' !== $ctx->effective_environment ) {
 			return 'only production has a sitemap worth checking';
 		}
 		return true;

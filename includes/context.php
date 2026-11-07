@@ -33,6 +33,14 @@ class Omens_Audit_Context {
 	public $environment;
 
 	/**
+	 * The environment the checks act on: production or staging decided by the
+	 * host name, local by the constant. See omens_audit_effective_environment().
+	 *
+	 * @var string
+	 */
+	public $effective_environment;
+
+	/**
 	 * custom|purchased. See omens_audit_build_type().
 	 *
 	 * @var string
@@ -89,6 +97,7 @@ class Omens_Audit_Context {
 	public function __construct( array $opts = array() ) {
 		$this->host           = omens_audit_host();
 		$this->environment    = wp_get_environment_type();
+		$this->effective_environment = omens_audit_effective_environment( $this->host, $this->environment );
 		$build                = omens_audit_build_type();
 		$this->build_type     = $build['type'];
 		$this->build_evidence = $build['evidence'];

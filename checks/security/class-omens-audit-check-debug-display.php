@@ -28,7 +28,7 @@ class Omens_Audit_Check_Debug_Display extends Omens_Audit_Check_Base {
 	}
 
 	public function applies( Omens_Audit_Context $ctx ) {
-		return 'production' === $ctx->environment ? true : 'only runs on production (this is ' . $ctx->environment . ')';
+		return 'production' === $ctx->effective_environment ? true : 'only runs on production (this is ' . $ctx->effective_environment . ' by host name)';
 	}
 
 	public function run( Omens_Audit_Context $ctx ) {
@@ -42,8 +42,16 @@ class Omens_Audit_Check_Debug_Display extends Omens_Audit_Check_Base {
 			$reasons[] = 'WP_DEBUG is true and WP_DEBUG_DISPLAY is not defined, so WordPress displays errors';
 		}
 		$display = strtolower( (string) ini_get( 'display_errors' ) );
+		/**
+		 * The SAPI the ini value belongs to. PHP's CLI forces display_errors on, so
+		 * under WP-CLI the ini value says nothing about the web server; the ini
+		 * branch only counts for a web SAPI. Filterable for the fixtures.
+		 *
+		 * @param string $sapi PHP_SAPI.
+		 */
+		$sapi = (string) apply_filters( 'omens_audit/php_sapi', PHP_SAPI );
 		// WordPress itself forces display_errors off when WP_DEBUG_DISPLAY is false, so the ini value only counts otherwise.
-		if ( in_array( $display, array( '1', 'on', 'true', 'stdout' ), true ) && ! ( defined( 'WP_DEBUG_DISPLAY' ) && ! WP_DEBUG_DISPLAY ) ) {
+		if ( 'cli' !== $sapi && in_array( $display, array( '1', 'on', 'true', 'stdout' ), true ) && ! ( defined( 'WP_DEBUG_DISPLAY' ) && ! WP_DEBUG_DISPLAY ) ) {
 			$reasons[] = 'PHP display_errors is ' . $display;
 		}
 		if ( ! $reasons ) {

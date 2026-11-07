@@ -81,6 +81,25 @@ function omens_audit_seo_plugin() {
  * @param string $host Host.
  * @return bool
  */
+/**
+ * The environment the checks act on. The host name is the authority: a site
+ * answering on a production domain is production whatever WP_ENVIRONMENT_TYPE
+ * says (a sandbox that became production by DNS still carries "staging"), and
+ * a host on a staging pattern is staging whatever the constant says. Only
+ * "local" is taken from the constant or a loopback host, because a local copy
+ * answers on any name.
+ *
+ * @param string $host The site host.
+ * @param string $env  wp_get_environment_type().
+ * @return string production|staging|local
+ */
+function omens_audit_effective_environment( $host, $env ) {
+	if ( 'local' === $env || preg_match( '/^(localhost|127\.0\.0\.1|\[::1\])(:\d+)?$/i', (string) $host ) ) {
+		return 'local';
+	}
+	return omens_audit_host_looks_nonproduction( $host ) ? 'staging' : 'production';
+}
+
 function omens_audit_host_looks_nonproduction( $host ) {
 	/**
 	 * Host patterns that mean "not production".

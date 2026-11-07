@@ -29,14 +29,16 @@ class Omens_Audit_Check_Indexing_Blocked extends Omens_Audit_Check_Base {
 	}
 
 	public function applies( Omens_Audit_Context $ctx ) {
-		return 'local' === $ctx->environment ? 'local environment' : true;
+		return 'local' === $ctx->effective_environment ? 'local environment' : true;
 	}
 
 	public function run( Omens_Audit_Context $ctx ) {
 		$findings  = array();
 		$env       = $ctx->environment;
 		$looks_dev = omens_audit_host_looks_nonproduction( $ctx->host );
-		$effective = $looks_dev ? 'staging' : $env;
+		// The host decides in both directions. 1.0.0 trusted it one way only, so a production
+		// domain whose constant still said "staging" was told to discourage search engines.
+		$effective = $ctx->effective_environment;
 
 		if ( ( 'production' === $env ) === $looks_dev ) {
 			$findings[] = $this->finding(
@@ -44,7 +46,7 @@ class Omens_Audit_Check_Indexing_Blocked extends Omens_Audit_Check_Base {
 					'subject'  => 'environment-mismatch',
 					'severity' => 'info',
 					'title'    => sprintf( 'WP_ENVIRONMENT_TYPE is %s but the host %s looks like %s', $env, $ctx->host, $looks_dev ? 'staging' : 'production' ),
-					'summary'  => 'The indexing check trusts the host name; the constant should be corrected so every other tool agrees.',
+					'summary'  => 'The audit trusts the host name (this site is treated as ' . $effective . '); the constant should be corrected so every other tool agrees.',
 					'fix'      => array(
 						'route'      => 'config',
 						'where'      => 'wp-config.php (or the Pressable environment setting)',

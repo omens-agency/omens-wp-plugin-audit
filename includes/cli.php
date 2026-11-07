@@ -31,6 +31,12 @@ class Omens_Audit_CLI {
 	 * [--dry-run]
 	 * : Run but do not store the result.
 	 *
+	 * [--store]
+	 * : Store a partial run (--check or --family) as the latest run. Without it a
+	 * partial run is never stored, because the central run reads the latest run
+	 * to decide what was re-checked and a one-check record would mark every
+	 * other task "not checked".
+	 *
 	 * [--format=<format>]
 	 * : Summary format: table (default) or json (prints the whole run).
 	 *
@@ -49,6 +55,13 @@ class Omens_Audit_CLI {
 			'dry_run' => ! empty( $assoc_args['dry-run'] ),
 		);
 		$format = (string) ( $assoc_args['format'] ?? 'table' );
+		$partial = '' !== $opts['family'] || ! empty( $opts['checks'] );
+		if ( $partial && ! $opts['dry_run'] && empty( $assoc_args['store'] ) ) {
+			$opts['dry_run'] = true;
+			if ( 'json' !== $format ) {
+				WP_CLI::log( 'Partial selection: not stored as the latest run (pass --store to overwrite it).' );
+			}
+		}
 
 		$selected = omens_audit_select_checks( $opts );
 		if ( ! $selected ) {

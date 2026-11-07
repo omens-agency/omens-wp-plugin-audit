@@ -54,6 +54,21 @@ add_action(
 		if ( defined( 'OMENS_PLUGIN_UPDATE_TOKEN' ) && OMENS_PLUGIN_UPDATE_TOKEN ) {
 			$checker->setAuthentication( OMENS_PLUGIN_UPDATE_TOKEN );
 		}
+		// The icon WordPress shows on the Plugins and Updates screens. Served from the
+		// public repo, so no asset leaves with the zip and no token is needed.
+		$checker->addResultFilter(
+			static function ( $info ) {
+				$base = 'https://raw.githubusercontent.com/omens-agency/omens-wp-plugin-audit/main/assets/';
+				if ( is_object( $info ) && property_exists( $info, 'icons' ) ) {
+					$info->icons = array(
+						'svg' => $base . 'icon.svg',
+						'1x'  => $base . 'icon-128x128.png',
+						'2x'  => $base . 'icon-256x256.png',
+					);
+				}
+				return $info;
+			}
+		);
 		// For a manual probe: wp eval '$GLOBALS["omens_audit_updater"]->checkForUpdates();'
 		$GLOBALS['omens_audit_updater'] = $checker;
 	}

@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.0.1 (2026-11-07)
+
+Fixes from the post-launch audit (Dev Team review, 2026-11-07). No new checks.
+
+- **The host name decides the environment in both directions.** 1.0.0 trusted it one way only, so a production domain whose `WP_ENVIRONMENT_TYPE` still said `staging` (a sandbox that became production by DNS) was told at serious severity to discourage search engines. `seo.indexing-blocked`, `seo.sitemap` and `security.debug-display` now key on one `effective_environment` (production or staging by host, local by the constant); the constant mismatch stays an info finding.
+- **A partial WP-CLI run is never stored.** `wp omens-audit run --check=` or `--family=` without `--dry-run` used to overwrite the latest run, so the central run read a one-check record and marked every other task "not checked". Partial runs now imply `--dry-run`; `--store` overrides.
+- `security.debug-display` ignores PHP's `display_errors` ini value under the CLI SAPI, which PHP forces on, so a host without a CLI ini override no longer files a false serious finding.
+- Plugin icon (the yellow calendar-check tile) replaces the skeleton placeholder and is served to the Plugins and Updates screens through the update checker.
+
 ## 1.0.0 (2026-11-07)
 
 First release of the Omens Site Audit, the on-site half of the Omens Site Audit system (central run: `web-maintenance-audit`; fix workflow: `web-audit-fix`).
