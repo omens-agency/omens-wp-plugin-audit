@@ -1,7 +1,8 @@
 # Changelog
 
-## Unreleased
+## 1.0.2 (2026-11-07)
 
+- **Platform counters are moderate and point at the template.** Jetpack Stats and the Pressable visit counter (Fathom Analytics, formerly Gauges; the platform injects it on every Pressable site) are now the `hosting analytics` tracker category in `data/trackers.json`, so `legal.tracker-drift` files them at moderate instead of serious and its fix names the Legal Pages privacy template's `HOSTING_ANALYTICS` block (or the Pressable Insights switch, for the counter) instead of a cookie-table row. Jake's call, 2026-11-07, after both pilots produced the same two serious findings and the fleet would have produced about 120.
 - A check that returns its one `cannot-run` finding (for example `currency.plugins` when the `update_plugins` transient is empty, which `wp plugin install` leaves behind) is recorded with status `cannot-run` instead of `ran`, so the central run does not count its open tasks as re-checked. The central run guards against this on its side as well.
 
 ## 1.0.1 (2026-11-07)

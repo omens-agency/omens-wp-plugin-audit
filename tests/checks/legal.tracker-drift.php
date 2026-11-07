@@ -44,6 +44,27 @@ return array(
 		},
 		'expect' => array( 'count' => 1, 'severity' => 'moderate', 'subject' => 'vimeo-embeds' ),
 	),
+	'fires_hosting_analytics_is_moderate' => array(
+		'setup'  => function ( $t ) use ( $privacy ) {
+			$privacy( $t, '<p>Minimal policy.</p>' );
+			$t->page( $t->doc( '<main>x</main>', '<script src="https://stats.wp.com/e-202645.js"></script><script src="https://secure.gaug.es/track.js"></script>' ) );
+		},
+		'expect' => function ( $f, $run, $t ) {
+			$subjects = array_column( $f, 'subject' ); sort( $subjects );
+			$t->assert( array( 'gauges', 'jetpack-stats' ) === $subjects, 'expected the two platform counters; got ' . json_encode( $subjects ) );
+			foreach ( $f as $x ) {
+				$t->assert( 'moderate' === $x['severity'], $x['subject'] . ' is moderate, not serious' );
+				$t->assert( 'content' === $x['fix']['route'] && false !== strpos( $x['fix']['steps'][0], 'HOSTING_ANALYTICS' ), $x['subject'] . ' routes to the template block' );
+			}
+		},
+	),
+	'clean_hosting_analytics_block_present' => array(
+		'setup'  => function ( $t ) use ( $privacy ) {
+			$privacy( $t, '<p>Our hosting provider, Pressable, Inc. (part of Automattic), measures traffic to the Site.</p><ul><li>Jetpack Stats (Automattic Inc.) records, for each page view, the page address and the referring page.</li><li>The Pressable visit counter (Fathom Analytics, formerly Gauges) counts visits without cookies.</li></ul>' );
+			$t->page( $t->doc( '<main>x</main>', '<script src="https://stats.wp.com/e-202645.js"></script><script src="https://secure.gaug.es/track.js"></script>' ) );
+		},
+		'expect' => array( 'count' => 0 ),
+	),
 	'skipped_without_privacy_page' => array(
 		'setup'  => function ( $t ) { $t->page( $t->doc( '<main>x</main>', '<script src="https://static.hotjar.com/c/hotjar-1.js"></script>' ) ); },
 		'expect' => array( 'count' => 1, 'severity' => 'info', 'subject' => 'not-applicable' ),

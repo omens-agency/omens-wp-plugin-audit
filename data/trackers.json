@@ -1,687 +1,687 @@
 [
- {
-  "match": [
-   "google.com/g/collect"
-  ],
-  "tool": "Google Analytics 4",
-  "purpose": "Measures site traffic and visitor behaviour",
-  "category": "analytics",
-  "provider": "Google LLC"
- },
- {
-  "match": [
-   "google.com/maps"
-  ],
-  "tool": "Google Maps",
-  "purpose": "Displays an embedded map",
-  "category": "embedded media",
-  "provider": "Google LLC"
- },
- {
-  "match": [
-   "google.com/ccm/form-data"
-  ],
-  "tool": "Google Ads enhanced conversions",
-  "purpose": "Sends hashed form details (such as email) to Google Ads to match conversions",
-  "category": "advertising",
-  "provider": "Google LLC"
- },
- {
-  "match": [
-   "skinplusbyoroyo.com/wp-content"
-  ],
-  "tool": "SkinPlus by Oroyo (sister site) assets",
-  "purpose": "Serves the brand typeface files, hosted on the sister site",
-  "category": "strictly necessary",
-  "provider": "SkinPlus by Oroyo (same business)"
- },
- {
-  "match": [
-   "leadconnectorhq.com",
-   "storage.googleapis.com/builder-preview",
-   "link.skinplusbyoroyopromo.com"
-  ],
-  "tool": "LeadConnector (HighLevel)",
-  "purpose": "Embedded lead-capture forms and chat widget; submissions go to the HighLevel CRM",
-  "category": "marketing",
-  "provider": "LeadConnector / HighLevel, Inc."
- },
- {
-  "match": [
-   "cdn.giftup.app",
-   "giftup.app"
-  ],
-  "tool": "Gift Up",
-  "purpose": "Sells and redeems gift cards through a hosted checkout",
-  "category": "strictly necessary",
-  "provider": "Gift Up! Ltd"
- },
- {
-  "match": [
-   "squareup.com",
-   "squarecdn.com"
-  ],
-  "tool": "Square",
-  "purpose": "Processes card payments and appointment bookings",
-  "category": "strictly necessary",
-  "provider": "Block, Inc. (Square)"
- },
- {
-  "match": [
-   "ecs.us-west-2.on.aws",
-   "ecs.us-east-1.on.aws"
-  ],
-  "tool": "Meta Pixel event gateway",
-  "purpose": "Receives Meta Pixel events (called by Meta's pixel configuration script)",
-  "category": "advertising",
-  "provider": "Meta Platforms, Inc. (Amazon Web Services endpoint)"
- },
- {
-  "match": [
-   "d3k81ch9hvuctc.cloudfront.net",
-   "static-forms.klaviyo.com",
-   "static-tracking.klaviyo.com",
-   "fast.a.klaviyo.com"
-  ],
-  "tool": "Klaviyo",
-  "purpose": "Email and SMS marketing, onsite forms and browse tracking",
-  "category": "marketing",
-  "provider": "Klaviyo, Inc."
- },
- {
-  "match": [
-   "places.googleapis.com"
-  ],
-  "tool": "Google Maps",
-  "purpose": "Displays an embedded map",
-  "category": "embedded media",
-  "provider": "Google LLC"
- },
- {
-  "match": [
-   "google.com/rmkt",
-   "google.com/ccm",
-   "google.com/pagead",
-   "www.google.com/ads"
-  ],
-  "tool": "Google Ads",
-  "purpose": "Conversion tracking and remarketing",
-  "category": "advertising",
-  "provider": "Google LLC"
- },
- {
-  "match": [
-   "s.w.org"
-  ],
-  "tool": "WordPress core assets",
-  "purpose": "Serves emoji images for older browsers",
-  "category": "strictly necessary",
-  "provider": "WordPress.org"
- },
- {
-  "match": [
-   "videos.files.wordpress.com",
-   "videopress.com"
-  ],
-  "tool": "Jetpack VideoPress",
-  "purpose": "Hosts and streams embedded video",
-  "category": "embedded media",
-  "provider": "Automattic Inc."
- },
- {
-  "match": [
-   "flywheelsites.com"
-  ],
-  "tool": "Legacy image host (former agency's Flywheel site)",
-  "purpose": "Serves a 'Website by' credit image hotlinked from the previous agency's site",
-  "category": "embedded media",
-  "provider": "Tier 3 Media via WP Engine / Flywheel"
- },
- {
-  "match": [
-   "recaptcha",
-   "www.google.com/recaptcha"
-  ],
-  "tool": "CAPTCHA",
-  "purpose": "Spam protection",
-  "category": "strictly necessary",
-  "provider": "Google LLC"
- },
- {
-  "match": [
-   "google-analytics.com",
-   "analytics.google.com",
-   "/gtag/js",
-   "region1.google-analytics.com"
-  ],
-  "tool": "Google Analytics 4",
-  "purpose": "Measures how visitors find and use the site",
-  "category": "analytics",
-  "provider": "Google LLC"
- },
- {
-  "match": [
-   "googletagmanager.com"
-  ],
-  "tool": "Google Tag Manager",
-  "purpose": "Loads and manages the other tags on this list",
-  "category": "analytics",
-  "provider": "Google LLC"
- },
- {
-  "match": [
-   "googleadservices.com",
-   "googlesyndication.com",
-   "google.com/ads",
-   "/pagead/",
-   "google.com/ccm/collect",
-   "google.com/rmkt/",
-   "google.com/pagead/"
-  ],
-  "tool": "Google Ads",
-  "purpose": "Measures advertising performance and builds audiences",
-  "category": "advertising",
-  "provider": "Google LLC"
- },
- {
-  "match": [
-   "doubleclick.net"
-  ],
-  "tool": "Google Display and Video",
-  "purpose": "Advertising measurement and retargeting",
-  "category": "advertising",
-  "provider": "Google LLC"
- },
- {
-  "match": [
-   "connect.facebook.net",
-   "facebook.com/tr"
-  ],
-  "tool": "Meta Pixel",
-  "purpose": "Measures advertising performance and builds audiences",
-  "category": "advertising",
-  "provider": "Meta Platforms, Inc."
- },
- {
-  "match": [
-   "analytics.tiktok.com",
-   "tiktok.com/i18n/pixel"
-  ],
-  "tool": "TikTok Pixel",
-  "purpose": "Advertising measurement and audience building",
-  "category": "advertising",
-  "provider": "TikTok"
- },
- {
-  "match": [
-   "snap.licdn.com",
-   "linkedin.com/px",
-   "ads.linkedin.com"
-  ],
-  "tool": "LinkedIn Insight Tag",
-  "purpose": "Advertising measurement and audience building",
-  "category": "advertising",
-  "provider": "LinkedIn"
- },
- {
-  "match": [
-   "sc-static.net",
-   "tr.snapchat.com"
-  ],
-  "tool": "Snap Pixel",
-  "purpose": "Advertising measurement",
-  "category": "advertising",
-  "provider": "Snap Inc."
- },
- {
-  "match": [
-   "bat.bing.com",
-   "clarity.ms"
-  ],
-  "tool": "Microsoft Advertising and Clarity",
-  "purpose": "Advertising measurement and session recording",
-  "category": "advertising and session recording",
-  "provider": "Microsoft"
- },
- {
-  "match": [
-   "static.hotjar.com",
-   "script.hotjar.com",
-   "hotjar.io"
-  ],
-  "tool": "Hotjar",
-  "purpose": "Records sessions and heatmaps to study how pages are used",
-  "category": "session recording",
-  "provider": "Hotjar Ltd."
- },
- {
-  "match": [
-   "fullstory.com",
-   "fs.js"
-  ],
-  "tool": "FullStory",
-  "purpose": "Records sessions to study how pages are used",
-  "category": "session recording",
-  "provider": "FullStory"
- },
- {
-  "match": [
-   "luckyorange.com",
-   "luckyorange.net"
-  ],
-  "tool": "Lucky Orange",
-  "purpose": "Records sessions and heatmaps",
-  "category": "session recording",
-  "provider": "Lucky Orange LLC"
- },
- {
-  "match": [
-   "static.klaviyo.com",
-   "klaviyo.com/onsite",
-   "a.klaviyo.com"
-  ],
-  "tool": "Klaviyo",
-  "purpose": "Email and SMS marketing, onsite forms and browse tracking",
-  "category": "marketing",
-  "provider": "Klaviyo, Inc."
- },
- {
-  "match": [
-   "js.hs-scripts.com",
-   "hubspot.com",
-   "hs-analytics.net",
-   "hsforms"
-  ],
-  "tool": "HubSpot",
-  "purpose": "Forms, chat and marketing analytics",
-  "category": "marketing",
-  "provider": "HubSpot, Inc."
- },
- {
-  "match": [
-   "mailchimp.com",
-   "chimpstatic.com",
-   "list-manage.com"
-  ],
-  "tool": "Mailchimp",
-  "purpose": "Email marketing signup and tracking",
-  "category": "marketing",
-  "provider": "Intuit Mailchimp"
- },
- {
-  "match": [
-   "intercom.io",
-   "intercomcdn.com"
-  ],
-  "tool": "Intercom",
-  "purpose": "Live chat and messaging",
-  "category": "chat",
-  "provider": "Intercom, Inc."
- },
- {
-  "match": [
-   "tawk.to"
-  ],
-  "tool": "Tawk.to",
-  "purpose": "Live chat",
-  "category": "chat",
-  "provider": "tawk.to inc."
- },
- {
-  "match": [
-   "widget.drift.com",
-   "driftt.com"
-  ],
-  "tool": "Drift",
-  "purpose": "Live chat",
-  "category": "chat",
-  "provider": "Drift"
- },
- {
-  "match": [
-   "zdassets.com",
-   "zendesk.com",
-   "zopim.com"
-  ],
-  "tool": "Zendesk",
-  "purpose": "Live chat and support widget",
-  "category": "chat",
-  "provider": "Zendesk, Inc."
- },
- {
-  "match": [
-   "youtube.com/embed",
-   "ytimg.com",
-   "youtube-nocookie.com"
-  ],
-  "tool": "YouTube embeds",
-  "purpose": "Plays embedded video",
-  "category": "embedded media",
-  "provider": "Google LLC"
- },
- {
-  "match": [
-   "player.vimeo.com",
-   "vimeocdn.com"
-  ],
-  "tool": "Vimeo embeds",
-  "purpose": "Plays embedded video",
-  "category": "embedded media",
-  "provider": "Vimeo.com, Inc."
- },
- {
-  "match": [
-   "maps.googleapis.com",
-   "maps.google.com",
-   "maps.gstatic.com"
-  ],
-  "tool": "Google Maps",
-  "purpose": "Displays an embedded map",
-  "category": "embedded media",
-  "provider": "Google LLC"
- },
- {
-  "match": [
-   "fonts.googleapis.com",
-   "fonts.gstatic.com"
-  ],
-  "tool": "Google Fonts",
-  "purpose": "Serves the site's typefaces",
-  "category": "embedded media",
-  "provider": "Google LLC"
- },
- {
-  "match": [
-   "use.typekit.net",
-   "p.typekit.net"
-  ],
-  "tool": "Adobe Fonts",
-  "purpose": "Serves the site's typefaces",
-  "category": "embedded media",
-  "provider": "Adobe Inc."
- },
- {
-  "match": [
-   "google.com/recaptcha",
-   "gstatic.com/recaptcha",
-   "hcaptcha.com"
-  ],
-  "tool": "CAPTCHA",
-  "purpose": "Protects forms from automated abuse",
-  "category": "strictly necessary",
-  "provider": "Google LLC or hCaptcha"
- },
- {
-  "match": [
-   "js.stripe.com",
-   "stripe.com/v3",
-   "m.stripe.network"
-  ],
-  "tool": "Stripe",
-  "purpose": "Processes payments and screens for fraud",
-  "category": "strictly necessary",
-  "provider": "Stripe, Inc."
- },
- {
-  "match": [
-   "paypal.com",
-   "paypalobjects.com"
-  ],
-  "tool": "PayPal",
-  "purpose": "Processes payments",
-  "category": "strictly necessary",
-  "provider": "PayPal, Inc."
- },
- {
-  "match": [
-   "cdn.cookieyes.com",
-   "cookieyes.com"
-  ],
-  "tool": "CookieYes",
-  "purpose": "Presents the cookie banner and enforces consent choices",
-  "category": "strictly necessary",
-  "provider": "CookieYes Limited"
- },
- {
-  "match": [
-   "cdn.iubenda.com",
-   "iubenda.com"
-  ],
-  "tool": "iubenda",
-  "purpose": "Presents the cookie banner and enforces consent choices",
-  "category": "strictly necessary",
-  "provider": "iubenda s.r.l."
- },
- {
-  "match": [
-   "cdn.cookielaw.org",
-   "onetrust.com"
-  ],
-  "tool": "OneTrust",
-  "purpose": "Presents the cookie banner and enforces consent choices",
-  "category": "strictly necessary",
-  "provider": "OneTrust, LLC"
- },
- {
-  "match": [
-   "acsbapp.com",
-   "accessibe.com",
-   "acsbap.com"
-  ],
-  "tool": "accessWidget",
-  "purpose": "Offers optional display and navigation adjustments",
-  "category": "accessibility",
-  "provider": "accessiBe Ltd."
- },
- {
-  "match": [
-   "userway.org"
-  ],
-  "tool": "UserWay",
-  "purpose": "Offers optional display and navigation adjustments",
-  "category": "accessibility",
-  "provider": "UserWay Inc."
- },
- {
-  "match": [
-   "cdn.shopify.com",
-   "monorail-edge.shopifysvc.com",
-   "shopifycloud"
-  ],
-  "tool": "Shopify platform",
-  "purpose": "Runs the store, cart and checkout",
-  "category": "strictly necessary",
-  "provider": "Shopify Inc."
- },
- {
-  "match": [
-   "cdn.flyingcdn.com",
-   "flyingpress"
-  ],
-  "tool": "FlyingPress",
-  "purpose": "Caches and optimises page delivery",
-  "category": "strictly necessary",
-  "provider": "FlyingPress"
- },
- {
-  "match": [
-   "nitropack.io",
-   "nitrocdn.com"
-  ],
-  "tool": "NitroPack",
-  "purpose": "Caches and optimises page delivery",
-  "category": "strictly necessary",
-  "provider": "NitroPack Inc."
- },
- {
-  "match": [
-   "stats.wp.com",
-   "pixel.wp.com",
-   "jetpack.com"
-  ],
-  "tool": "Jetpack Stats",
-  "purpose": "Basic site traffic statistics",
-  "category": "analytics",
-  "provider": "Automattic Inc."
- },
- {
-  "match": [
-   "gravatar.com"
-  ],
-  "tool": "Gravatar",
-  "purpose": "Displays avatar images on comments",
-  "category": "embedded media",
-  "provider": "Automattic Inc."
- },
- {
-  "match": [
-   "cloudflare.com",
-   "cloudflareinsights.com"
-  ],
-  "tool": "Cloudflare",
-  "purpose": "Content delivery, security and basic performance measurement",
-  "category": "strictly necessary",
-  "provider": "Cloudflare, Inc."
- },
- {
-  "match": [
-   "hcaptcha",
-   "challenges.cloudflare.com"
-  ],
-  "tool": "Cloudflare Turnstile",
-  "purpose": "Protects forms from automated abuse",
-  "category": "strictly necessary",
-  "provider": "Cloudflare, Inc."
- },
- {
-  "match": [
-   "calendly.com"
-  ],
-  "tool": "Calendly",
-  "purpose": "Embedded appointment booking",
-  "category": "embedded media",
-  "provider": "Calendly, LLC"
- },
- {
-  "match": [
-   "instagram.com",
-   "cdninstagram.com"
-  ],
-  "tool": "Instagram embeds",
-  "purpose": "Displays an embedded social feed",
-  "category": "embedded media",
-  "provider": "Meta Platforms, Inc."
- },
- {
-  "match": [
-   "secure.gaug.es",
-   "gaug.es"
-  ],
-  "tool": "Gauges",
-  "purpose": "Legacy web analytics tracker",
-  "category": "analytics",
-  "provider": "Gauges (gaug.es)"
- },
- {
-  "match": [
-   "bugherd.com"
-  ],
-  "tool": "BugHerd",
-  "purpose": "Internal QA feedback widget used during the build",
-  "category": "session recording",
-  "provider": "BugHerd (Splitrock Studio)"
- },
- {
-  "match": [
-   "hotels.cloudbeds.com",
-   "cloudbeds.com",
-   "book.cloudbeds"
-  ],
-  "tool": "Cloudbeds",
-  "purpose": "Takes the guest to the booking engine for the selected property",
-  "category": "strictly necessary",
-  "provider": "Cloudbeds"
- },
- {
-  "match": [
-   "akismet.com",
-   "rest.akismet"
-  ],
-  "tool": "Akismet",
-  "purpose": "Screens form submissions for spam",
-  "category": "strictly necessary",
-  "provider": "Automattic Inc."
- },
- {
-  "match": [
-   "kit.fontawesome.com",
-   "ka-p.fontawesome.com",
-   "ka-f.fontawesome.com"
-  ],
-  "tool": "Font Awesome",
-  "purpose": "Serves the site's icon font",
-  "category": "embedded media",
-  "provider": "Fonticons, Inc."
- },
- {
-  "match": [
-   "cdn.jsdelivr.net",
-   "unpkg.com",
-   "cdnjs.cloudflare.com"
-  ],
-  "tool": "Script CDN (jsDelivr, unpkg, cdnjs)",
-  "purpose": "Serves open-source front-end libraries the site's own code loads",
-  "category": "strictly necessary",
-  "provider": "jsDelivr (Prospect One), unpkg (Cloudflare), cdnjs (Cloudflare)"
- },
- {
-  "match": [
-   "api.tripleseat.com",
-   "tripleseat.com",
-   "tripleseat-static-production.s3.amazonaws.com"
-  ],
-  "tool": "Tripleseat",
-  "purpose": "Runs the event inquiry forms; submissions go to Tripleseat",
-  "category": "strictly necessary",
-  "provider": "Tripleseat, Inc."
- },
- {
-  "match": [
-   "maps.geoapify.com",
-   "geoapify.com"
-  ],
-  "tool": "Geoapify",
-  "purpose": "Serves the map tiles on the Getting Here map",
-  "category": "embedded media",
-  "provider": "Geoapify GmbH"
- },
- {
-  "match": [
-   "sessions.bugsnag.com",
-   "bugsnag.com"
-  ],
-  "tool": "BugHerd (Bugsnag error reporting)",
-  "purpose": "Error reporting for the BugHerd QA widget; present only while BugHerd is installed during the build",
-  "category": "strictly necessary",
-  "provider": "SmartBear Software (Bugsnag), loaded by BugHerd"
- },
- {
-  "match": [
-   "tile.openstreetmap.org",
-   "openstreetmap.org"
-  ],
-  "tool": "OpenStreetMap tiles (Leaflet)",
-  "purpose": "Draws the embedded map; the visitor's browser requests map tiles from the OpenStreetMap Foundation, which sees the visitor's IP address",
-  "category": "embedded media",
-  "provider": "OpenStreetMap Foundation"
- },
- {
-  "match": [
-   "vitals.flyingpress.com"
-  ],
-  "tool": "FlyingPress Vitals",
-  "purpose": "Reports Core Web Vitals timings for the page to FlyingPress's RUM service",
-  "category": "analytics",
-  "provider": "FlyingPress (Gijo Varghese)"
- }
+  {
+    "match": [
+      "google.com/g/collect"
+    ],
+    "tool": "Google Analytics 4",
+    "purpose": "Measures site traffic and visitor behaviour",
+    "category": "analytics",
+    "provider": "Google LLC"
+  },
+  {
+    "match": [
+      "google.com/maps"
+    ],
+    "tool": "Google Maps",
+    "purpose": "Displays an embedded map",
+    "category": "embedded media",
+    "provider": "Google LLC"
+  },
+  {
+    "match": [
+      "google.com/ccm/form-data"
+    ],
+    "tool": "Google Ads enhanced conversions",
+    "purpose": "Sends hashed form details (such as email) to Google Ads to match conversions",
+    "category": "advertising",
+    "provider": "Google LLC"
+  },
+  {
+    "match": [
+      "skinplusbyoroyo.com/wp-content"
+    ],
+    "tool": "SkinPlus by Oroyo (sister site) assets",
+    "purpose": "Serves the brand typeface files, hosted on the sister site",
+    "category": "strictly necessary",
+    "provider": "SkinPlus by Oroyo (same business)"
+  },
+  {
+    "match": [
+      "leadconnectorhq.com",
+      "storage.googleapis.com/builder-preview",
+      "link.skinplusbyoroyopromo.com"
+    ],
+    "tool": "LeadConnector (HighLevel)",
+    "purpose": "Embedded lead-capture forms and chat widget; submissions go to the HighLevel CRM",
+    "category": "marketing",
+    "provider": "LeadConnector / HighLevel, Inc."
+  },
+  {
+    "match": [
+      "cdn.giftup.app",
+      "giftup.app"
+    ],
+    "tool": "Gift Up",
+    "purpose": "Sells and redeems gift cards through a hosted checkout",
+    "category": "strictly necessary",
+    "provider": "Gift Up! Ltd"
+  },
+  {
+    "match": [
+      "squareup.com",
+      "squarecdn.com"
+    ],
+    "tool": "Square",
+    "purpose": "Processes card payments and appointment bookings",
+    "category": "strictly necessary",
+    "provider": "Block, Inc. (Square)"
+  },
+  {
+    "match": [
+      "ecs.us-west-2.on.aws",
+      "ecs.us-east-1.on.aws"
+    ],
+    "tool": "Meta Pixel event gateway",
+    "purpose": "Receives Meta Pixel events (called by Meta's pixel configuration script)",
+    "category": "advertising",
+    "provider": "Meta Platforms, Inc. (Amazon Web Services endpoint)"
+  },
+  {
+    "match": [
+      "d3k81ch9hvuctc.cloudfront.net",
+      "static-forms.klaviyo.com",
+      "static-tracking.klaviyo.com",
+      "fast.a.klaviyo.com"
+    ],
+    "tool": "Klaviyo",
+    "purpose": "Email and SMS marketing, onsite forms and browse tracking",
+    "category": "marketing",
+    "provider": "Klaviyo, Inc."
+  },
+  {
+    "match": [
+      "places.googleapis.com"
+    ],
+    "tool": "Google Maps",
+    "purpose": "Displays an embedded map",
+    "category": "embedded media",
+    "provider": "Google LLC"
+  },
+  {
+    "match": [
+      "google.com/rmkt",
+      "google.com/ccm",
+      "google.com/pagead",
+      "www.google.com/ads"
+    ],
+    "tool": "Google Ads",
+    "purpose": "Conversion tracking and remarketing",
+    "category": "advertising",
+    "provider": "Google LLC"
+  },
+  {
+    "match": [
+      "s.w.org"
+    ],
+    "tool": "WordPress core assets",
+    "purpose": "Serves emoji images for older browsers",
+    "category": "strictly necessary",
+    "provider": "WordPress.org"
+  },
+  {
+    "match": [
+      "videos.files.wordpress.com",
+      "videopress.com"
+    ],
+    "tool": "Jetpack VideoPress",
+    "purpose": "Hosts and streams embedded video",
+    "category": "embedded media",
+    "provider": "Automattic Inc."
+  },
+  {
+    "match": [
+      "flywheelsites.com"
+    ],
+    "tool": "Legacy image host (former agency's Flywheel site)",
+    "purpose": "Serves a 'Website by' credit image hotlinked from the previous agency's site",
+    "category": "embedded media",
+    "provider": "Tier 3 Media via WP Engine / Flywheel"
+  },
+  {
+    "match": [
+      "recaptcha",
+      "www.google.com/recaptcha"
+    ],
+    "tool": "CAPTCHA",
+    "purpose": "Spam protection",
+    "category": "strictly necessary",
+    "provider": "Google LLC"
+  },
+  {
+    "match": [
+      "google-analytics.com",
+      "analytics.google.com",
+      "/gtag/js",
+      "region1.google-analytics.com"
+    ],
+    "tool": "Google Analytics 4",
+    "purpose": "Measures how visitors find and use the site",
+    "category": "analytics",
+    "provider": "Google LLC"
+  },
+  {
+    "match": [
+      "googletagmanager.com"
+    ],
+    "tool": "Google Tag Manager",
+    "purpose": "Loads and manages the other tags on this list",
+    "category": "analytics",
+    "provider": "Google LLC"
+  },
+  {
+    "match": [
+      "googleadservices.com",
+      "googlesyndication.com",
+      "google.com/ads",
+      "/pagead/",
+      "google.com/ccm/collect",
+      "google.com/rmkt/",
+      "google.com/pagead/"
+    ],
+    "tool": "Google Ads",
+    "purpose": "Measures advertising performance and builds audiences",
+    "category": "advertising",
+    "provider": "Google LLC"
+  },
+  {
+    "match": [
+      "doubleclick.net"
+    ],
+    "tool": "Google Display and Video",
+    "purpose": "Advertising measurement and retargeting",
+    "category": "advertising",
+    "provider": "Google LLC"
+  },
+  {
+    "match": [
+      "connect.facebook.net",
+      "facebook.com/tr"
+    ],
+    "tool": "Meta Pixel",
+    "purpose": "Measures advertising performance and builds audiences",
+    "category": "advertising",
+    "provider": "Meta Platforms, Inc."
+  },
+  {
+    "match": [
+      "analytics.tiktok.com",
+      "tiktok.com/i18n/pixel"
+    ],
+    "tool": "TikTok Pixel",
+    "purpose": "Advertising measurement and audience building",
+    "category": "advertising",
+    "provider": "TikTok"
+  },
+  {
+    "match": [
+      "snap.licdn.com",
+      "linkedin.com/px",
+      "ads.linkedin.com"
+    ],
+    "tool": "LinkedIn Insight Tag",
+    "purpose": "Advertising measurement and audience building",
+    "category": "advertising",
+    "provider": "LinkedIn"
+  },
+  {
+    "match": [
+      "sc-static.net",
+      "tr.snapchat.com"
+    ],
+    "tool": "Snap Pixel",
+    "purpose": "Advertising measurement",
+    "category": "advertising",
+    "provider": "Snap Inc."
+  },
+  {
+    "match": [
+      "bat.bing.com",
+      "clarity.ms"
+    ],
+    "tool": "Microsoft Advertising and Clarity",
+    "purpose": "Advertising measurement and session recording",
+    "category": "advertising and session recording",
+    "provider": "Microsoft"
+  },
+  {
+    "match": [
+      "static.hotjar.com",
+      "script.hotjar.com",
+      "hotjar.io"
+    ],
+    "tool": "Hotjar",
+    "purpose": "Records sessions and heatmaps to study how pages are used",
+    "category": "session recording",
+    "provider": "Hotjar Ltd."
+  },
+  {
+    "match": [
+      "fullstory.com",
+      "fs.js"
+    ],
+    "tool": "FullStory",
+    "purpose": "Records sessions to study how pages are used",
+    "category": "session recording",
+    "provider": "FullStory"
+  },
+  {
+    "match": [
+      "luckyorange.com",
+      "luckyorange.net"
+    ],
+    "tool": "Lucky Orange",
+    "purpose": "Records sessions and heatmaps",
+    "category": "session recording",
+    "provider": "Lucky Orange LLC"
+  },
+  {
+    "match": [
+      "static.klaviyo.com",
+      "klaviyo.com/onsite",
+      "a.klaviyo.com"
+    ],
+    "tool": "Klaviyo",
+    "purpose": "Email and SMS marketing, onsite forms and browse tracking",
+    "category": "marketing",
+    "provider": "Klaviyo, Inc."
+  },
+  {
+    "match": [
+      "js.hs-scripts.com",
+      "hubspot.com",
+      "hs-analytics.net",
+      "hsforms"
+    ],
+    "tool": "HubSpot",
+    "purpose": "Forms, chat and marketing analytics",
+    "category": "marketing",
+    "provider": "HubSpot, Inc."
+  },
+  {
+    "match": [
+      "mailchimp.com",
+      "chimpstatic.com",
+      "list-manage.com"
+    ],
+    "tool": "Mailchimp",
+    "purpose": "Email marketing signup and tracking",
+    "category": "marketing",
+    "provider": "Intuit Mailchimp"
+  },
+  {
+    "match": [
+      "intercom.io",
+      "intercomcdn.com"
+    ],
+    "tool": "Intercom",
+    "purpose": "Live chat and messaging",
+    "category": "chat",
+    "provider": "Intercom, Inc."
+  },
+  {
+    "match": [
+      "tawk.to"
+    ],
+    "tool": "Tawk.to",
+    "purpose": "Live chat",
+    "category": "chat",
+    "provider": "tawk.to inc."
+  },
+  {
+    "match": [
+      "widget.drift.com",
+      "driftt.com"
+    ],
+    "tool": "Drift",
+    "purpose": "Live chat",
+    "category": "chat",
+    "provider": "Drift"
+  },
+  {
+    "match": [
+      "zdassets.com",
+      "zendesk.com",
+      "zopim.com"
+    ],
+    "tool": "Zendesk",
+    "purpose": "Live chat and support widget",
+    "category": "chat",
+    "provider": "Zendesk, Inc."
+  },
+  {
+    "match": [
+      "youtube.com/embed",
+      "ytimg.com",
+      "youtube-nocookie.com"
+    ],
+    "tool": "YouTube embeds",
+    "purpose": "Plays embedded video",
+    "category": "embedded media",
+    "provider": "Google LLC"
+  },
+  {
+    "match": [
+      "player.vimeo.com",
+      "vimeocdn.com"
+    ],
+    "tool": "Vimeo embeds",
+    "purpose": "Plays embedded video",
+    "category": "embedded media",
+    "provider": "Vimeo.com, Inc."
+  },
+  {
+    "match": [
+      "maps.googleapis.com",
+      "maps.google.com",
+      "maps.gstatic.com"
+    ],
+    "tool": "Google Maps",
+    "purpose": "Displays an embedded map",
+    "category": "embedded media",
+    "provider": "Google LLC"
+  },
+  {
+    "match": [
+      "fonts.googleapis.com",
+      "fonts.gstatic.com"
+    ],
+    "tool": "Google Fonts",
+    "purpose": "Serves the site's typefaces",
+    "category": "embedded media",
+    "provider": "Google LLC"
+  },
+  {
+    "match": [
+      "use.typekit.net",
+      "p.typekit.net"
+    ],
+    "tool": "Adobe Fonts",
+    "purpose": "Serves the site's typefaces",
+    "category": "embedded media",
+    "provider": "Adobe Inc."
+  },
+  {
+    "match": [
+      "google.com/recaptcha",
+      "gstatic.com/recaptcha",
+      "hcaptcha.com"
+    ],
+    "tool": "CAPTCHA",
+    "purpose": "Protects forms from automated abuse",
+    "category": "strictly necessary",
+    "provider": "Google LLC or hCaptcha"
+  },
+  {
+    "match": [
+      "js.stripe.com",
+      "stripe.com/v3",
+      "m.stripe.network"
+    ],
+    "tool": "Stripe",
+    "purpose": "Processes payments and screens for fraud",
+    "category": "strictly necessary",
+    "provider": "Stripe, Inc."
+  },
+  {
+    "match": [
+      "paypal.com",
+      "paypalobjects.com"
+    ],
+    "tool": "PayPal",
+    "purpose": "Processes payments",
+    "category": "strictly necessary",
+    "provider": "PayPal, Inc."
+  },
+  {
+    "match": [
+      "cdn.cookieyes.com",
+      "cookieyes.com"
+    ],
+    "tool": "CookieYes",
+    "purpose": "Presents the cookie banner and enforces consent choices",
+    "category": "strictly necessary",
+    "provider": "CookieYes Limited"
+  },
+  {
+    "match": [
+      "cdn.iubenda.com",
+      "iubenda.com"
+    ],
+    "tool": "iubenda",
+    "purpose": "Presents the cookie banner and enforces consent choices",
+    "category": "strictly necessary",
+    "provider": "iubenda s.r.l."
+  },
+  {
+    "match": [
+      "cdn.cookielaw.org",
+      "onetrust.com"
+    ],
+    "tool": "OneTrust",
+    "purpose": "Presents the cookie banner and enforces consent choices",
+    "category": "strictly necessary",
+    "provider": "OneTrust, LLC"
+  },
+  {
+    "match": [
+      "acsbapp.com",
+      "accessibe.com",
+      "acsbap.com"
+    ],
+    "tool": "accessWidget",
+    "purpose": "Offers optional display and navigation adjustments",
+    "category": "accessibility",
+    "provider": "accessiBe Ltd."
+  },
+  {
+    "match": [
+      "userway.org"
+    ],
+    "tool": "UserWay",
+    "purpose": "Offers optional display and navigation adjustments",
+    "category": "accessibility",
+    "provider": "UserWay Inc."
+  },
+  {
+    "match": [
+      "cdn.shopify.com",
+      "monorail-edge.shopifysvc.com",
+      "shopifycloud"
+    ],
+    "tool": "Shopify platform",
+    "purpose": "Runs the store, cart and checkout",
+    "category": "strictly necessary",
+    "provider": "Shopify Inc."
+  },
+  {
+    "match": [
+      "cdn.flyingcdn.com",
+      "flyingpress"
+    ],
+    "tool": "FlyingPress",
+    "purpose": "Caches and optimises page delivery",
+    "category": "strictly necessary",
+    "provider": "FlyingPress"
+  },
+  {
+    "match": [
+      "nitropack.io",
+      "nitrocdn.com"
+    ],
+    "tool": "NitroPack",
+    "purpose": "Caches and optimises page delivery",
+    "category": "strictly necessary",
+    "provider": "NitroPack Inc."
+  },
+  {
+    "match": [
+      "stats.wp.com",
+      "pixel.wp.com",
+      "jetpack.com"
+    ],
+    "tool": "Jetpack Stats",
+    "purpose": "Site traffic statistics run by the hosting platform (Jetpack)",
+    "category": "hosting analytics",
+    "provider": "Automattic Inc."
+  },
+  {
+    "match": [
+      "gravatar.com"
+    ],
+    "tool": "Gravatar",
+    "purpose": "Displays avatar images on comments",
+    "category": "embedded media",
+    "provider": "Automattic Inc."
+  },
+  {
+    "match": [
+      "cloudflare.com",
+      "cloudflareinsights.com"
+    ],
+    "tool": "Cloudflare",
+    "purpose": "Content delivery, security and basic performance measurement",
+    "category": "strictly necessary",
+    "provider": "Cloudflare, Inc."
+  },
+  {
+    "match": [
+      "hcaptcha",
+      "challenges.cloudflare.com"
+    ],
+    "tool": "Cloudflare Turnstile",
+    "purpose": "Protects forms from automated abuse",
+    "category": "strictly necessary",
+    "provider": "Cloudflare, Inc."
+  },
+  {
+    "match": [
+      "calendly.com"
+    ],
+    "tool": "Calendly",
+    "purpose": "Embedded appointment booking",
+    "category": "embedded media",
+    "provider": "Calendly, LLC"
+  },
+  {
+    "match": [
+      "instagram.com",
+      "cdninstagram.com"
+    ],
+    "tool": "Instagram embeds",
+    "purpose": "Displays an embedded social feed",
+    "category": "embedded media",
+    "provider": "Meta Platforms, Inc."
+  },
+  {
+    "match": [
+      "secure.gaug.es",
+      "gaug.es"
+    ],
+    "tool": "Gauges",
+    "purpose": "Hosting provider's visit counter (Fathom Analytics, formerly Gauges), injected by Pressable",
+    "category": "hosting analytics",
+    "provider": "Fathom Analytics"
+  },
+  {
+    "match": [
+      "bugherd.com"
+    ],
+    "tool": "BugHerd",
+    "purpose": "Internal QA feedback widget used during the build",
+    "category": "session recording",
+    "provider": "BugHerd (Splitrock Studio)"
+  },
+  {
+    "match": [
+      "hotels.cloudbeds.com",
+      "cloudbeds.com",
+      "book.cloudbeds"
+    ],
+    "tool": "Cloudbeds",
+    "purpose": "Takes the guest to the booking engine for the selected property",
+    "category": "strictly necessary",
+    "provider": "Cloudbeds"
+  },
+  {
+    "match": [
+      "akismet.com",
+      "rest.akismet"
+    ],
+    "tool": "Akismet",
+    "purpose": "Screens form submissions for spam",
+    "category": "strictly necessary",
+    "provider": "Automattic Inc."
+  },
+  {
+    "match": [
+      "kit.fontawesome.com",
+      "ka-p.fontawesome.com",
+      "ka-f.fontawesome.com"
+    ],
+    "tool": "Font Awesome",
+    "purpose": "Serves the site's icon font",
+    "category": "embedded media",
+    "provider": "Fonticons, Inc."
+  },
+  {
+    "match": [
+      "cdn.jsdelivr.net",
+      "unpkg.com",
+      "cdnjs.cloudflare.com"
+    ],
+    "tool": "Script CDN (jsDelivr, unpkg, cdnjs)",
+    "purpose": "Serves open-source front-end libraries the site's own code loads",
+    "category": "strictly necessary",
+    "provider": "jsDelivr (Prospect One), unpkg (Cloudflare), cdnjs (Cloudflare)"
+  },
+  {
+    "match": [
+      "api.tripleseat.com",
+      "tripleseat.com",
+      "tripleseat-static-production.s3.amazonaws.com"
+    ],
+    "tool": "Tripleseat",
+    "purpose": "Runs the event inquiry forms; submissions go to Tripleseat",
+    "category": "strictly necessary",
+    "provider": "Tripleseat, Inc."
+  },
+  {
+    "match": [
+      "maps.geoapify.com",
+      "geoapify.com"
+    ],
+    "tool": "Geoapify",
+    "purpose": "Serves the map tiles on the Getting Here map",
+    "category": "embedded media",
+    "provider": "Geoapify GmbH"
+  },
+  {
+    "match": [
+      "sessions.bugsnag.com",
+      "bugsnag.com"
+    ],
+    "tool": "BugHerd (Bugsnag error reporting)",
+    "purpose": "Error reporting for the BugHerd QA widget; present only while BugHerd is installed during the build",
+    "category": "strictly necessary",
+    "provider": "SmartBear Software (Bugsnag), loaded by BugHerd"
+  },
+  {
+    "match": [
+      "tile.openstreetmap.org",
+      "openstreetmap.org"
+    ],
+    "tool": "OpenStreetMap tiles (Leaflet)",
+    "purpose": "Draws the embedded map; the visitor's browser requests map tiles from the OpenStreetMap Foundation, which sees the visitor's IP address",
+    "category": "embedded media",
+    "provider": "OpenStreetMap Foundation"
+  },
+  {
+    "match": [
+      "vitals.flyingpress.com"
+    ],
+    "tool": "FlyingPress Vitals",
+    "purpose": "Reports Core Web Vitals timings for the page to FlyingPress's RUM service",
+    "category": "analytics",
+    "provider": "FlyingPress (Gijo Varghese)"
+  }
 ]

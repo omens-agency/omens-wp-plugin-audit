@@ -4,6 +4,11 @@
  * privacy policy does not name. Signatures are the web-legal-pages set,
  * copied to data/trackers.json.
  *
+ * "hosting analytics" (Jetpack Stats and the Pressable visit counter, which
+ * the platform injects on every Pressable site) is moderate, not serious,
+ * and its fix is the HOSTING_ANALYTICS block of the Legal Pages privacy
+ * template rather than a cookie-table row (decision 2026-11-07).
+ *
  * @package OmensAudit
  */
 
@@ -72,6 +77,7 @@ class Omens_Audit_Check_Tracker_Drift extends Omens_Audit_Check_Base {
 				'chat'                              => 'serious',
 				'accessibility'                     => 'moderate',
 				'embedded media'                    => 'moderate',
+				'hosting analytics'                 => 'moderate',
 			)
 		);
 	}
@@ -115,21 +121,34 @@ class Omens_Audit_Check_Tracker_Drift extends Omens_Audit_Check_Base {
 			if ( $this->policy_names( $policy, $sig ) ) {
 				continue;
 			}
+			$hosting = 'hosting analytics' === ( $sig['category'] ?? '' );
+			if ( $hosting ) {
+				$summary = sprintf( '%s (%s) is injected by the hosting platform on %s and the privacy policy names neither the tool nor its provider.', $tool, $sig['provider'] ?? 'unknown provider', wp_parse_url( $url, PHP_URL_PATH ) );
+				$where   = 'the privacy policy, section 5: the HOSTING_ANALYTICS block of the Legal Pages privacy template';
+				$steps   = array(
+					sprintf( 'Add the HOSTING_ANALYTICS block from Library/Legal Pages/templates/Privacy Policy.md (section 5) to the policy; it names %s and the other platform counter with what each collects.', $tool ),
+					'Or, for the Pressable visit counter only: ask Pressable Customer Success to switch the account to Pressable Insights Page Views, which counts server-side and injects no script; then delete that bullet from the block.',
+				);
+			} else {
+				$summary = sprintf( '%s (%s, %s) was found on %s and the privacy policy names neither the tool nor its provider.', $tool, $sig['category'] ?? 'tracker', $sig['provider'] ?? 'unknown provider', wp_parse_url( $url, PHP_URL_PATH ) );
+				$where   = 'the privacy policy\'s cookie and recipient tables';
+				$steps   = array(
+					sprintf( 'Either add %s (%s) to the cookie table with its purpose: %s.', $tool, $sig['provider'] ?? '', $sig['purpose'] ?? '' ),
+					'Or remove the tag if nobody uses it. Then re-run web-legal-pages so the table is generated from the real tracker load.',
+				);
+			}
 			$findings[] = $this->finding(
 				array(
 					'subject'  => sanitize_title( $tool ),
 					'severity' => $cats[ $sig['category'] ],
 					'title'    => sprintf( 'Privacy policy does not name %s', $tool ),
-					'summary'  => sprintf( '%s (%s, %s) was found on %s and the privacy policy names neither the tool nor its provider.', $tool, $sig['category'] ?? 'tracker', $sig['provider'] ?? 'unknown provider', wp_parse_url( $url, PHP_URL_PATH ) ),
+					'summary'  => $summary,
 					'detail'   => 'matched "' . $needle . '"',
 					'url'      => $url,
 					'fix'      => array(
 						'route'      => 'content',
-						'where'      => 'the privacy policy\'s cookie and recipient tables',
-						'steps'      => array(
-							sprintf( 'Either add %s (%s) to the cookie table with its purpose: %s.', $tool, $sig['provider'] ?? '', $sig['purpose'] ?? '' ),
-							'Or remove the tag if nobody uses it. Then re-run web-legal-pages so the table is generated from the real tracker load.',
-						),
+						'where'      => $where,
+						'steps'      => $steps,
 						'confidence' => 'high',
 					),
 					'evidence' => array( 'signature "' . $needle . '" on ' . $url, 'policy searched for: ' . implode( ', ', $this->names( $sig ) ) ),
