@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- A check that returns its one `cannot-run` finding (for example `currency.plugins` when the `update_plugins` transient is empty, which `wp plugin install` leaves behind) is recorded with status `cannot-run` instead of `ran`, so the central run does not count its open tasks as re-checked. The central run guards against this on its side as well.
+
 ## 1.0.1 (2026-11-07)
 
 Fixes from the post-launch audit (Dev Team review, 2026-11-07). No new checks.

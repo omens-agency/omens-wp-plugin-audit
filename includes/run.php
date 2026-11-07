@@ -64,6 +64,12 @@ function omens_audit_run( array $opts = array(), $progress = null ) {
 				$notify( 'skip', $id, array( 'reason' => is_string( $applies ) ? $applies : 'not applicable' ) );
 			} else {
 				$out = (array) $check->run( $ctx );
+				// A check that could not do its job (its one cannot-run finding) looked at
+				// nothing: record that, so the central run never reads its open tasks as
+				// re-checked. Seen live when wp plugin install emptied the update_plugins transient.
+				if ( 1 === count( $out ) && 'cannot-run' === ( $out[0]['subject'] ?? '' ) ) {
+					$status = 'cannot-run';
+				}
 			}
 		} catch ( \Throwable $e ) {
 			$status = 'failed';
