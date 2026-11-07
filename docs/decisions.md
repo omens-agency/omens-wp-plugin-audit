@@ -98,3 +98,14 @@ Sandbox: BugHerd project 550748 "Omens Audit Sandbox", created through the MCP w
 - **omens.agency declared custom:** `omens-agency/omens-wp-theme` PR #1 (https://github.com/omens-agency/omens-wp-theme/pull/1) adds the `omens_audit/build_type` filter so the plugin reports the reskin theme as a custom build; verified on the Studio copy before the PR.
 - **Local state restored:** the BCCA Studio checkout is back on `main` with Jake's uncommitted files untouched, the CodeKit project re-enabled, and the review gate constant put back; the BugHerd sandbox holds 28 tasks.
 - **Known residue:** the harness keyboard spec errored in both BCCA runs (as it had on The Peak), so keyboard findings are partial; a harness issue, not an audit one.
+
+## 2026-11-07: M6 (rollout) outcomes
+
+- **1.0.0 released** through the pre-release then promote path: pre-release installed on a Pressable staging site (the purchased pilot's staging), 18 checks ran in 15.8 s with the staging-aware checks skipping or inverting as designed, export parsed, then `VERIFIED=1 tools/promote.sh 1.0.0`. The full release is live at `releases/latest/download/omens-wp-plugin-audit.zip`.
+- **Installed on both pilots' production sites** over SSH (the plan's M6 step), first production runs: omens.agency 21 findings in 10.4 s, the purchased pilot 28 findings in 23.6 s. Both are purchased to the plugin until `omens-wp-theme` PR #1 merges (omens.agency) and remain so on the purchased pilot.
+- **Added to the starter's installer (tier 1) and to `spec/plugin-baseline.md`.** The starter checkout had unrelated uncommitted edits from another session, so only `tools/install-plugins.sh` was committed; no starter version bump.
+- **The registry covers the fleet**: 60 production rows from Pressable, plan tiers from the Hosting & Maintenance sheet (Comply 29, Basic 13, Boost 4, Maintain 3, no retainer 11), BugHerd projects matched by name with the aliases recorded in the build script. Only the pilots are enabled; `ssh_user` is filled per site when it is enabled. Rollout is by batch per decision 8.
+- **Scheduled tasks created on Jake's Mac, in dry-run mode**: weekly vulnerability sweep (Mondays 08:00), monthly run (2nd, 08:00), dead-man's check (4th, 09:00). They flip to live filing only when a month is named under "Live filing" in `Management/site-audit/README.md`. The cloud dead-man's switch the plan asked for was not created: a cloud routine needs an environment and a connector choice that are Jake's, and the local check covers the gap until then.
+- **Studio-origin baselines deleted**; production's first run writes them.
+- **Still open from M4**: a client-role view of a board to prove `guest_visible: false` took. Needs a client user on the sandbox, which only Jake should add.
+- **Noticed on the first production runs, for 1.0.1**: the summary line counts the sitemap's child fetches in "fetched" (7 URLs, 9 fetched); cosmetic.
