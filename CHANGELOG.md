@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.1 (unreleased, M3)
+
+- The run's inventory gains `plugins` (slug, file, name, version, status), so the central run can confirm a host vulnerability alert against the version the site really runs before filing it.
+
 ## 0.2.0 (unreleased, M2: the version 1 checks)
 
 - The 18 on-site checks of version 1 (security 4, currency 2, SEO 3, accessibility 4, legal 5), each with fixtures that fire and fixtures that stay clean; `tools/fixtures.sh` runs them against WordPress stubs. The content-versus-code routing rule (`includes/routing.php`) with a fixture per branch. Shared HTML helpers (DOMDocument, accessible name, selector, robots, scripts). Tracker signatures copied from web-legal-pages into `data/trackers.json`; meaningless-filename patterns from omens-wp-plugin-media into `data/meaningless-filenames.json`.

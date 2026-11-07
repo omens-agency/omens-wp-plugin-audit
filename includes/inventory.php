@@ -108,3 +108,28 @@ function omens_audit_inventory_mu_plugins() {
 	}
 	return $list;
 }
+
+/**
+ * Installed plugins with version and status, so the central run can confirm a
+ * host vulnerability alert against what is really installed before filing.
+ *
+ * @return array[]
+ */
+function omens_audit_inventory_plugins() {
+	if ( ! function_exists( 'get_plugins' ) ) {
+		require_once ABSPATH . 'wp-admin/includes/plugin.php';
+	}
+	$active = array_merge( (array) get_option( 'active_plugins', array() ), array_keys( (array) get_site_option( 'active_sitewide_plugins', array() ) ) );
+	$list   = array();
+	foreach ( get_plugins() as $file => $data ) {
+		$slug   = dirname( $file );
+		$list[] = array(
+			'slug'    => '.' === $slug ? basename( $file, '.php' ) : $slug,
+			'file'    => (string) $file,
+			'name'    => (string) ( $data['Name'] ?? '' ),
+			'version' => (string) ( $data['Version'] ?? '' ),
+			'status'  => in_array( $file, $active, true ) ? 'active' : 'inactive',
+		);
+	}
+	return $list;
+}

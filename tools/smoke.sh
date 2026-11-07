@@ -47,7 +47,7 @@ for k in ("schema","plugin_version","run_at","host","environment","build_type","
     assert k in r, "missing " + k
 assert "security.file-edit-enabled" in r["checks"], r["checks"]
 assert r["host"] and r["environment"], r
-assert isinstance(r["inventory"]["admins"], list) and isinstance(r["inventory"]["mu_plugins"], list)
+assert isinstance(r["inventory"]["admins"], list) and isinstance(r["inventory"]["mu_plugins"], list) and isinstance(r["inventory"]["plugins"], list)
 f = r["findings"]
 assert isinstance(f, list)
 if f:

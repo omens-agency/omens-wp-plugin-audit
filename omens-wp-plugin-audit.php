@@ -4,7 +4,7 @@
  * Plugin URI:        https://github.com/omens-agency/omens-wp-plugin-audit
  * Update URI:        https://github.com/omens-agency/omens-wp-plugin-audit
  * Description:       A stateless audit sensor: runs the Omens site checks (security, currency, SEO, accessibility, legal) on demand or monthly, keeps only the latest run, and exports it for the central maintenance audit. WP-CLI: wp omens-audit run | export | checks.
- * Version:           0.1.0
+ * Version:           0.2.1
  * Requires at least: 6.4
  * Tested up to:      7.1
  * Requires PHP:      8.1
@@ -24,7 +24,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 // Guarded so a second copy (a "-main" folder beside the release folder, the
 // case the Plugins-screen notice in includes/updates.php is for) warns about
 // nothing and the first copy's values stand.
-defined( 'OMENS_AUDIT_VERSION' ) || define( 'OMENS_AUDIT_VERSION', '0.1.0' );
+defined( 'OMENS_AUDIT_VERSION' ) || define( 'OMENS_AUDIT_VERSION', '0.2.1' );
 defined( 'OMENS_AUDIT_FILE' ) || define( 'OMENS_AUDIT_FILE', __FILE__ );
 defined( 'OMENS_AUDIT_DIR' ) || define( 'OMENS_AUDIT_DIR', plugin_dir_path( __FILE__ ) );
 defined( 'OMENS_AUDIT_SCHEMA' ) || define( 'OMENS_AUDIT_SCHEMA', 1 );
