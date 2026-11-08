@@ -58,6 +58,14 @@ return array(
 		},
 		'expect' => array( 'count' => 0 ),
 	),
+	// 1.0.3: WordPress core markup that is right as printed is not a finding.
+	'clean_core_lightbox_template_and_avatars' => array(
+		'setup'  => function ( $t ) use ( $about ) {
+			$id = $about( $t, '<p>x</p>' );
+			$t->page( $t->doc( '<main><figure><img data-wp-bind--alt="state.selectedImage.alt" data-wp-bind--class="state.selectedImage.imgClassNames" data-wp-bind--src="state.selectedImage.currentSrc"></figure><ol class="commentlist"><li><a href="/author/x/"><img alt="" src="https://secure.gravatar.com/avatar/e7cde2626d37982f42485d9dbbc52f7e?s=60" class="avatar avatar-60 photo" height="60" width="60"></a> Name says</li></ol></main>' ), get_permalink( $id ) );
+		},
+		'expect' => array( 'count' => 0 ),
+	),
 	// The same defect on every page is one finding.
 	'fires_dedupes_across_pages' => array(
 		'setup'  => function ( $t ) use ( $about ) {

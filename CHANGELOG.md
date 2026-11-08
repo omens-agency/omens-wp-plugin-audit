@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.0.3 (2026-11-08)
+
+Fixes from the first fleet dry run (35 sites, November 7). No new checks.
+
+- **`security.php-in-uploads` now has three tiers and a signature allowlist.** Of its 36 criticals on the first fleet run, 28 were files plugins put under uploads themselves (Redux Customizer class stubs, Ajax Load More templates, Calendarize It help, Ultimate Addons icon maps, LearnDash and WPForms guards, the Mailchimp log), 6 were zero-byte remnants of a cleaned infection, and 2 were a live cookie-triggered backdoor that read exactly like the guards around it. The allowlist entries now carry a content signature (`contains` / `starts`), so a dropper named like a plugin file does not ride them; any `index.php` that only exits, comments or sends a header is a guard whatever its spelling; a file with no PHP in it is filed as **inert** at moderate; and a file whose code reads request input, decodes or evaluates strings, or runs commands is filed as a **suspected web shell** with the incident steps first. Filters: `omens_audit/uploads_allow` (entries may now be arrays), `omens_audit/uploads_shell_markers`.
+- `a11y.img-alt-missing` skips WordPress core markup that is correct as printed: the image-lightbox template (`data-wp-bind--alt`) and comment avatars from `get_avatar()`.
+
 ## 1.0.2 (2026-11-07)
 
 - **Platform counters are moderate and point at the template.** Jetpack Stats and the Pressable visit counter (Fathom Analytics, formerly Gauges; the platform injects it on every Pressable site) are now the `hosting analytics` tracker category in `data/trackers.json`, so `legal.tracker-drift` files them at moderate instead of serious and its fix names the Legal Pages privacy template's `HOSTING_ANALYTICS` block (or the Pressable Insights switch, for the counter) instead of a cookie-table row. Jake's call, 2026-11-07, after both pilots produced the same two serious findings and the fleet would have produced about 120.

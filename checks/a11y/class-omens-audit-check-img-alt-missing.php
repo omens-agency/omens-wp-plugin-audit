@@ -47,6 +47,11 @@ class Omens_Audit_Check_Img_Alt_Missing extends Omens_Audit_Check_Base {
 				if ( omens_audit_is_hidden( $img ) || 'presentation' === $img->getAttribute( 'role' ) || 'none' === $img->getAttribute( 'role' ) ) {
 					continue;
 				}
+				// WordPress core markup that is correct as printed: the image-lightbox template binds alt at
+				// runtime (data-wp-bind--alt), and comment avatars from get_avatar() carry alt="" by design.
+				if ( $img->hasAttribute( 'data-wp-bind--alt' ) || preg_match( '/(^|\s)avatar(\s|$)/', $img->getAttribute( 'class' ) ) || false !== strpos( $img->getAttribute( 'src' ), 'gravatar.com/avatar/' ) ) {
+					continue;
+				}
 				$src = '' !== $img->getAttribute( 'src' ) ? $img->getAttribute( 'src' ) : $img->getAttribute( 'data-src' );
 				if ( 0 === strpos( $src, 'data:' ) && ! $img->hasAttribute( 'data-src' ) ) {
 					continue; // Inline tracking pixels and placeholders.
