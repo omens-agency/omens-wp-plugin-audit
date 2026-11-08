@@ -42,7 +42,12 @@ rm -f "$SLUG.php.bak"
 /usr/bin/grep -Eq "VERSION', '$VER' \);" "$SLUG.php" || { echo "Constant bump failed."; git checkout -- "$SLUG.php"; exit 1; }
 php -l "$SLUG.php" >/dev/null
 
-git add "$SLUG.php" && git commit -q -m "Release $VER" && git tag "v$VER"
+# If the bump was already committed (the version landed with the feature commit), there is
+# nothing to commit and the tag still has to be cut; a plain && chain skipped the tag and the
+# archive then failed with "not a valid object name" (1.0.5, 2026-11-08).
+git add "$SLUG.php"
+git diff --cached --quiet || git commit -q -m "Release $VER"
+git tag "v$VER"
 
 TMP=$(mktemp -d)
 ZIP="$TMP/$SLUG.zip"
