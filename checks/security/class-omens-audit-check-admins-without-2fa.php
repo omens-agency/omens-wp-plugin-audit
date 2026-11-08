@@ -24,7 +24,7 @@ class Omens_Audit_Check_Admins_Without_2fa extends Omens_Audit_Check_Base {
 	}
 
 	public function title() {
-		return 'Administrators without two-factor authentication';
+		return 'Two-factor authentication for administrators';
 	}
 
 	public function severity() {
@@ -129,29 +129,59 @@ class Omens_Audit_Check_Admins_Without_2fa extends Omens_Audit_Check_Base {
 			);
 		}
 
-		$findings = array();
+		// A provider is active: enrolment is the plugin's job from here (Jake, November 8, 2026: "we don't
+		// need to be flagged about administrators without 2FA as long as that plugin is in place"). One
+		// info line records how far enrolment has got; nothing files. Not-yet-enrolled names stay in the
+		// evidence so the monthly report can still show them.
+		$bare = array();
 		foreach ( $admins as $admin ) {
-			if ( $this->user_has_2fa( $admin['id'], $providers ) ) {
-				continue;
+			if ( ! $this->user_has_2fa( $admin['id'], $providers ) ) {
+				$bare[] = $admin['login'];
 			}
-			$findings[] = $this->finding(
+		}
+		$enforced = $this->enforced_for_admins( $providers );
+		return array(
+			$this->finding(
 				array(
-					'subject'  => 'user:' . $admin['id'],
-					'title'    => sprintf( 'Administrator "%s" has no second factor', $admin['login'] ),
-					'summary'  => sprintf( 'User %d (%s, registered %s) can sign in with a password alone while %s is active.', $admin['id'], $admin['login'], substr( $admin['registered'], 0, 10 ), implode( ', ', $providers ) ),
+					'subject'  => 'enrolment',
+					'severity' => 'info',
+					'title'    => sprintf( 'Two-factor: %d of %d administrators enrolled (%s%s)', count( $admins ) - count( $bare ), count( $admins ), implode( ', ', $providers ), null === $enforced ? '' : ( $enforced ? ', enforced for administrators' : ', not enforced for administrators' ) ),
+					'summary'  => $bare ? sprintf( '%s is active; %d administrator account(s) have not enrolled yet: %s.', implode( ', ', $providers ), count( $bare ), implode( ', ', $bare ) ) : sprintf( '%s is active and every administrator has a second factor.', implode( ', ', $providers ) ),
 					'fix'      => array(
 						'route'      => 'human',
-						'where'      => 'Users > ' . $admin['login'],
-						'steps'      => array(
-							'Ask the user to enrol a second factor, or enforce it for the Administrator role so the next login requires it.',
-							'If the account is unused, downgrade or remove it.',
-						),
+						'where'      => 'Users',
+						'steps'      => array( 'Nothing to file: the plugin prompts each administrator at sign-in. Accounts that never enrol are accounts nobody uses; downgrade or remove them.' ),
 						'confidence' => 'high',
 					),
-					'evidence' => array( 'providers active: ' . implode( ', ', $providers ) . '; email domain ' . $admin['email_domain'] ),
+					'evidence' => array( 'providers active: ' . implode( ', ', $providers ), 'not enrolled: ' . ( $bare ? implode( ', ', $bare ) : 'none' ) ),
 				)
-			);
+			),
+		);
+	}
+
+	/**
+	 * Whether WP 2FA enforces a second factor for administrators. Null when the
+	 * active provider is not WP 2FA or the policy cannot be read.
+	 *
+	 * @param string[] $providers Active providers.
+	 * @return bool|null
+	 */
+	private function enforced_for_admins( array $providers ) {
+		if ( ! in_array( 'wp-2fa', $providers, true ) ) {
+			return null;
 		}
-		return $findings;
+		$policy = get_option( 'wp_2fa_policy' );
+		if ( ! is_array( $policy ) || empty( $policy['enforcement-policy'] ) ) {
+			return null;
+		}
+		if ( 'all-users' === $policy['enforcement-policy'] ) {
+			return true;
+		}
+		if ( 'certain-roles-only' === $policy['enforcement-policy'] ) {
+			$roles = $policy['enforced_roles'] ?? array();
+			$roles = is_array( $roles ) ? $roles : explode( ',', (string) $roles );
+			return in_array( 'administrator', array_map( 'trim', $roles ), true );
+		}
+		return false;
 	}
 }

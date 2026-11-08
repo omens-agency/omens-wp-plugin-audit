@@ -8,7 +8,15 @@ return array(
 			omens_test_add_user( array( 'user_login' => 'contractor' ) );
 			omens_test_add_user( array( 'user_login' => 'editor', 'roles' => array( 'editor' ) ) );
 		},
-		'expect' => array( 'count' => 1, 'severity' => 'serious', 'route' => 'human', 'title_contains' => 'contractor' ),
+		'expect' => function ( $f, $run, $t ) { $t->assert( 1 === count( $f ) && 'info' === $f[0]['severity'] && 'enrolment' === $f[0]['subject'] && false !== strpos( $f[0]['summary'], 'contractor' ) && false !== strpos( $f[0]['title'], '1 of 2' ), 'expected one info enrolment line naming contractor, got ' . json_encode( $f ) ); },
+	),
+	'info_enforced_policy_is_named' => array(
+		'setup'  => function ( $t ) {
+			$t->state()['options']['active_plugins'] = array( 'wp-2fa/wp-2fa.php' );
+			$t->state()['options']['wp_2fa_policy'] = array( 'enforcement-policy' => 'certain-roles-only', 'enforced_roles' => array( 'administrator' ) );
+			omens_test_add_user( array( 'user_login' => 'bare' ) );
+		},
+		'expect' => array( 'count' => 1, 'severity' => 'info', 'title_contains' => 'enforced for administrators' ),
 	),
 	'fires_no_plugin' => array(
 		'setup'  => function ( $t ) { omens_test_add_user( array( 'user_login' => 'a' ) ); omens_test_add_user( array( 'user_login' => 'b' ) ); },
@@ -22,7 +30,7 @@ return array(
 			omens_test_add_user( array( 'user_login' => 'bare' ) );
 			$t->state()['db_rows']['wp_wfls_secrets'] = array( array( 'user_id' => $u1 ) );
 		},
-		'expect' => array( 'count' => 1, 'title_contains' => 'bare' ),
+		'expect' => array( 'count' => 1, 'severity' => 'info', 'summary_contains' => 'bare' ),
 	),
 	'clean' => array(
 		'setup'  => function ( $t ) {
@@ -31,6 +39,6 @@ return array(
 			omens_test_add_user( array( 'user_login' => 'sso', 'ID' => 77 ) );
 			add_filter( 'omens_audit/user_has_2fa', function ( $has, $id ) { return 77 === $id ? true : $has; }, 10, 2 );
 		},
-		'expect' => array( 'count' => 0 ),
+		'expect' => array( 'count' => 1, 'severity' => 'info', 'summary_contains' => 'every administrator has a second factor' ),
 	),
 );
