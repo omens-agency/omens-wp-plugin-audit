@@ -50,6 +50,9 @@ class Omens_Audit_Check_Link_Empty extends Omens_Audit_Check_Base {
 				if ( omens_audit_is_hidden( $el ) ) {
 					continue;
 				}
+				if ( $el->hasAttribute( 'data-wp-bind--aria-label' ) ) {
+					continue; // WordPress core binds the name at runtime (the image lightbox trigger button).
+				}
 				if ( '' !== omens_audit_accessible_name( $el ) ) {
 					continue;
 				}

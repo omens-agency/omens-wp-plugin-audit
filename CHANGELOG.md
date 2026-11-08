@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.0.5 (2026-11-08)
+
+Two false positives found while working the moderate findings of the fleet dry run. No new checks.
+
+- `a11y.link-empty` skips WordPress core's image lightbox trigger button, whose `aria-label` is bound at runtime by the Interactivity API (`data-wp-bind--aria-label`), the same way `a11y.img-alt-missing` already skips the lightbox image.
+- The URL sample skips page-builder template post types (Elementor library, ThemeREX layouts, Oxygen, ElementsKit and the like). Their permalinks redirect to the front page and the redirected request carries no cache-buster, so on three sites the audit kept reading an hour-old cached copy of `/` under another name after a fix had landed. Filter: `omens_audit/template_post_types`.
+- `currency.house-plugins` no longer asks a custom build for `omens-wp-plugin-seo` when Yoast, Rank Math or All in One SEO is active. Yoast is the house SEO pick (plugin baseline, 2026-08-31), so a starter build on Yoast is the normal case, not a gap.
+
 ## 1.0.4 (2026-11-08)
 
 Fixes from the serious-findings review of the first fleet dry run. No new checks.

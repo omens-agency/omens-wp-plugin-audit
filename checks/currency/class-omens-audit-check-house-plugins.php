@@ -82,7 +82,13 @@ class Omens_Audit_Check_House_Plugins extends Omens_Audit_Check_Base {
 		$findings  = array();
 		$private   = false;
 
-		foreach ( self::expected( $ctx->build_type ) as $slug => $facts ) {
+		$expected = self::expected( $ctx->build_type );
+		$seo      = function_exists( 'omens_audit_seo_plugin' ) ? omens_audit_seo_plugin() : array( 'slug' => 'none' );
+		if ( in_array( $seo['slug'] ?? 'none', array( 'yoast', 'rank-math', 'aioseo' ), true ) ) {
+			// The build runs a third-party SEO plugin by choice (Yoast is the house pick); do not demand ours beside it.
+			unset( $expected['omens-wp-plugin-seo'] );
+		}
+		foreach ( $expected as $slug => $facts ) {
 			$file = $facts['file'];
 			if ( $facts['private'] ) {
 				$private = true;

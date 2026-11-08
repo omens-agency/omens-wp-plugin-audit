@@ -29,6 +29,22 @@ return array(
 		},
 		'expect' => array( 'count' => 1, 'subject' => 'omens-wp-plugin-security:missing' ),
 	),
+	// A custom build that runs Yoast (the house SEO pick) is not asked for omens-wp-plugin-seo as well.
+	'clean_custom_build_on_yoast' => array(
+		'setup'  => function ( $t ) {
+			define( 'OMENS_STARTER_VERSION', '1.9.3' );
+			define( 'OMENS_PLUGIN_UPDATE_TOKEN', 'x' );
+			$t->state()['plugins'] = array(
+				'omens-wp-plugin-audit/omens-wp-plugin-audit.php' => array( 'Name' => 'Omens Site Audit', 'Version' => '0.1.0' ),
+				'omens-wp-plugin-media/omens-wp-plugin-media.php' => array( 'Name' => 'Omens Media', 'Version' => '1.1.0' ),
+				'omens-wp-plugin-docs/omens-wp-plugin-docs.php'   => array( 'Name' => 'Omens Site Guide', 'Version' => '1.0.0' ),
+				'wordpress-seo/wp-seo.php'                        => array( 'Name' => 'Yoast SEO', 'Version' => '28.8' ),
+			);
+			$t->state()['options']['active_plugins'] = array_keys( $t->state()['plugins'] );
+			$t->state()['transients']['update_plugins'] = (object) array( 'last_checked' => time(), 'response' => array(), 'no_update' => array() );
+		},
+		'expect' => array( 'count' => 0 ),
+	),
 	'clean' => array(
 		'setup'  => function ( $t ) use ( $custom ) {
 			$custom( $t );

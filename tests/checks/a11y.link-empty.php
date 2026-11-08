@@ -52,6 +52,11 @@ return array(
 		'setup'  => function ( $t ) use ( $theme ) { define( 'OMENS_STARTER_VERSION', '1.12.0' ); $theme( $t, array( 'header.php' => '<button class="menu-toggle"><span></span></button>' ) ); $t->page( $t->doc( '<header><button class="menu-toggle"><span></span></button></header><main>x</main>' ) ); },
 		'expect' => array( 'count' => 1, 'route' => 'code', 'confidence' => 'low', 'criterion' => 'WCAG 2.2 4.1.2' ),
 	),
+	// WordPress core's image lightbox trigger binds its aria-label at runtime through the Interactivity API.
+	'clean_core_lightbox_button' => array(
+		'setup'  => function ( $t ) { $t->page( $t->doc( '<main><figure><img src="/i.png" alt="A chair"><button class="lightbox-trigger" type="button" aria-haspopup="dialog" data-wp-bind--aria-label="state.thisImage.triggerButtonAriaLabel"><svg></svg></button></figure></main>' ) ); },
+		'expect' => array( 'count' => 0 ),
+	),
 	'clean' => array(
 		'setup'  => function ( $t ) { $t->page( $t->doc( '<main><a href="/a/">Read more about us</a><a href="/b/" aria-label="Instagram"><svg></svg></a><a href="/c/"><img src="/i.png" alt="Our office"></a><button aria-labelledby="lbl"><span id="lbl">Open menu</span></button><a href="/d/"><svg><title>LinkedIn</title></svg></a><a href="/e/" hidden></a><a name="anchor"></a><input type="submit" value="Send"></main>' ) ); },
 		'expect' => array( 'count' => 0 ),

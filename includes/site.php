@@ -128,6 +128,21 @@ function omens_audit_legal_pages() {
  *
  * @return string[]
  */
+/**
+ * Post types that hold page-builder templates rather than pages: never sampled.
+ *
+ * @return string[]
+ */
+function omens_audit_template_post_types() {
+	$types = array( 'elementor_library', 'e-landing-page', 'cpt_layouts', 'ct_template', 'oxy_user_library', 'elementskit_template', 'elementskit_content', 'jet-theme-core', 'jet-engine', 'fl-builder-template', 'fl-theme-layout', 'brizy_template', 'tbuilder_layout', 'tbuilder_layout_part', 'us_page_block', 'kadence_element', 'blocksy_content_block', 'generateblocks_element', 'gp_elements', 'astra-advanced-hook', 'wp_block', 'wp_template', 'wp_template_part', 'wp_navigation' );
+	/**
+	 * Post types excluded from the sample because they are builder templates.
+	 *
+	 * @param string[] $types Slugs.
+	 */
+	return (array) apply_filters( 'omens_audit/template_post_types', $types );
+}
+
 function omens_audit_sample_urls() {
 	$urls = array( home_url( '/' ) );
 
@@ -146,6 +161,13 @@ function omens_audit_sample_urls() {
 	);
 	$types['page'] = 'page';
 	unset( $types['attachment'] );
+	// Page-builder template types are publicly queryable but their permalinks
+	// (?elementor_library=slug and the like) redirect to the front page, and the
+	// redirected request carries no cache-buster, so the sample would read a
+	// cached copy of / under another name. Not pages anyone visits.
+	foreach ( omens_audit_template_post_types() as $skip ) {
+		unset( $types[ $skip ] );
+	}
 	foreach ( $types as $type ) {
 		$posts = get_posts(
 			array(
