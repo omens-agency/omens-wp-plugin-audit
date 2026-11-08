@@ -42,6 +42,7 @@ class Omens_Audit_Check_Currency_Plugins extends Omens_Audit_Check_Base {
 		$no_update  = isset( $transient->no_update ) ? (array) $transient->no_update : array();
 		$findings   = array();
 		$no_channel = array();
+		$no_package = array();
 		$age_days   = (int) floor( ( time() - (int) $transient->last_checked ) / DAY_IN_SECONDS );
 
 		foreach ( $installed as $file => $data ) {
@@ -50,8 +51,16 @@ class Omens_Audit_Check_Currency_Plugins extends Omens_Audit_Check_Base {
 				$slug = basename( $file, '.php' );
 			}
 			if ( isset( $response[ $file ] ) ) {
-				$new        = (string) ( $response[ $file ]->new_version ?? '' );
-				$cur        = (string) ( $data['Version'] ?? '' );
+				$new = (string) ( $response[ $file ]->new_version ?? '' );
+				$cur = (string) ( $data['Version'] ?? '' );
+				// A pending update with no download package cannot be applied from this site:
+				// the plugin came bundled with a theme or its licence is not active here, so its
+				// updater announces the version and WordPress answers "Update package not
+				// available". One roll-up line per site; the vulnerability leg is the watch.
+				if ( '' === trim( (string) ( $response[ $file ]->package ?? '' ) ) ) {
+					$no_package[] = sprintf( '%s %s (%s available)', $data['Name'] ?? $slug, $cur, $new );
+					continue;
+				}
 				$findings[] = $this->finding(
 					array(
 						'subject'  => $slug,
@@ -71,6 +80,29 @@ class Omens_Audit_Check_Currency_Plugins extends Omens_Audit_Check_Base {
 			} elseif ( ! isset( $no_update[ $file ] ) ) {
 				$no_channel[] = sprintf( '%s %s', $data['Name'] ?? $slug, $data['Version'] ?? '' );
 			}
+		}
+
+		if ( $no_package ) {
+			sort( $no_package );
+			$findings[] = $this->finding(
+				array(
+					'subject'  => 'no-update-package',
+					'severity' => 'info',
+					'title'    => sprintf( '%d plugin(s) have an update with no download package (bundled or unlicensed)', count( $no_package ) ),
+					'summary'  => 'Their updater knows a newer version but no package is offered to this site: the plugin shipped inside a purchased theme or its licence is not active here. Maintenance cannot update them; known vulnerabilities in them still arrive through the Pressable alerts.',
+					'detail'   => implode( '; ', $no_package ),
+					'fix'      => array(
+						'route'      => 'human',
+						'where'      => 'plugin-licences.md and the site\'s BugHerd board',
+						'steps'      => array_merge(
+							array( 'Decide once per plugin and record it: buy a direct licence for the site, remove the plugin if unused, or accept it with the vulnerability watch as the backstop (close the task audit-accepted with the reason). A theme that no longer ships updates with a builder or slider in this list is a rebuild candidate, not a maintenance item.' ),
+							array_slice( $no_package, 0, 25 )
+						),
+						'confidence' => 'high',
+					),
+					'evidence' => array( sprintf( 'update_plugins response with an empty package, checked %d day(s) ago', $age_days ) ),
+				)
+			);
 		}
 
 		if ( $no_channel ) {

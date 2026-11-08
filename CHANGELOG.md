@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.6 (2026-11-08)
+
+- **`currency.plugins` rolls bundled and unlicensed plugins into one info line per site.** A pending update whose transient entry carries no download package cannot be applied from the site (the plugin shipped inside a purchased theme, or its licence is not active here; WordPress says "Update package not available"), so filing it as a moderate task every month asked for something maintenance cannot do. Those plugins now appear once per site, listed, with the decision the PM records instead (direct licence, removal, or accept with the vulnerability watch). Plugins with a package keep their per-plugin findings. Jake's call, November 8, with the like-for-like rebuild offer for abandoned themes (`Management/decisions-log.md`).
+
 ## 1.0.5 (2026-11-08)
 
 Two false positives found while working the moderate findings of the fleet dry run. No new checks.
