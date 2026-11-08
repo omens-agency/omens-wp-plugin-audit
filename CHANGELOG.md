@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.0.4 (2026-11-08)
+
+Fixes from the serious-findings review of the first fleet dry run. No new checks.
+
+- **`security.admins-without-2fa` files nothing while a 2FA plugin is active.** Jake's call (November 8): enrolment is the plugin's job once it is enforced. The check now records one info line per site (how many administrators are enrolled, whether WP 2FA enforces the Administrator role, and the names not yet enrolled, kept in the evidence for the monthly report) and stays serious only when no provider is active. 151 would-be tasks across 34 sites become 34 info lines.
+- **`seo.sitemap` finds the sitemap the way a crawler does.** It reads robots.txt `Sitemap:` lines first, then the detected plugin's default, then `/sitemap_index.xml`, `/sitemap.xml` and `/wp-sitemap.xml`, and accepts the first body that is a sitemap. `<loc>` values wrapped in CDATA (AIOSEO) are parsed. Four of the five fleet findings were the check's own: two AIOSEO indexes read as empty, Slim SEO's `/sitemap.xml` never tried, and a Yoast site mis-detected as Omens SEO.
+- SEO-plugin detection prefers an active Yoast, Rank Math or All in One SEO over the Omens SEO fallback, which used to win whenever a theme defined `omens_seo_get_description()`.
+
 ## 1.0.3 (2026-11-08)
 
 Fixes from the first fleet dry run (35 sites, November 7). No new checks.

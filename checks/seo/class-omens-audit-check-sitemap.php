@@ -37,11 +37,27 @@ class Omens_Audit_Check_Sitemap extends Omens_Audit_Check_Base {
 
 	public function run( Omens_Audit_Context $ctx ) {
 		$seo = omens_audit_seo_plugin();
-		$url = home_url( $seo['sitemap'] );
-		$xml = $ctx->fetch( $url );
+		// Where the sitemap is: robots.txt says first (every SEO plugin writes a Sitemap: line there),
+		// then the detected plugin's default, then the usual suspects. Slim SEO serves /sitemap.xml with
+		// core sitemaps off, and a site whose detection is wrong still gets found this way.
+		$tried = array();
+		$xml   = null;
+		$url   = '';
+		foreach ( $this->candidates( $ctx, $seo ) as $candidate ) {
+			$tried[] = $candidate;
+			$body    = $ctx->fetch( $candidate );
+			if ( null !== $body && false !== stripos( $body, '<urlset' ) || null !== $body && false !== stripos( $body, '<sitemapindex' ) ) {
+				$xml = $body;
+				$url = $candidate;
+				break;
+			}
+		}
 		if ( null === $xml ) {
-			$reason = $ctx->failed_fetches()[ $url ] ?? 'no response';
-			return array( $this->sitemap_finding( 'unreachable', $url, sprintf( 'The sitemap at %s did not answer with 200 (%s).', $seo['sitemap'], $reason ), array( 'Open the URL in a browser. If it is 404, enable the sitemap in ' . $seo['name'] . ' (or core sitemaps) and flush permalinks.' ), array( $reason ) ) );
+			$reasons = array();
+			foreach ( $tried as $t ) {
+				$reasons[] = wp_parse_url( $t, PHP_URL_PATH ) . ': ' . ( $ctx->failed_fetches()[ $t ] ?? 'not a sitemap' );
+			}
+			return array( $this->sitemap_finding( 'unreachable', home_url( $seo['sitemap'] ), sprintf( 'No sitemap answered at %s.', implode( ', ', array_map( static function ( $t ) { return wp_parse_url( $t, PHP_URL_PATH ); }, $tried ) ) ), array( 'Open the URLs in a browser. If all 404, enable the sitemap in ' . $seo['name'] . ' (or core sitemaps) and flush permalinks; if it lives elsewhere, add a Sitemap: line to robots.txt.' ), $reasons ) );
 		}
 		$locs = $this->locs( $xml );
 		if ( ! $locs ) {
@@ -82,13 +98,38 @@ class Omens_Audit_Check_Sitemap extends Omens_Audit_Check_Base {
 	}
 
 	/**
-	 * <loc> values from a sitemap or index.
+	 * Sitemap URLs to try, in order: robots.txt Sitemap: lines on this host,
+	 * the detected plugin's default, then the common paths.
+	 *
+	 * @param Omens_Audit_Context $ctx Context.
+	 * @param array               $seo Detected SEO plugin.
+	 * @return string[]
+	 */
+	private function candidates( Omens_Audit_Context $ctx, array $seo ) {
+		$list   = array();
+		$robots = $ctx->fetch( home_url( '/robots.txt' ) );
+		if ( null !== $robots && preg_match_all( '/^\s*sitemap\s*:\s*(\S+)/im', $robots, $m ) ) {
+			foreach ( $m[1] as $candidate ) {
+				$candidate = trim( $candidate );
+				if ( $ctx->is_own_url( $candidate ) && preg_match( '/\.xml(\?|$)/i', $candidate ) ) {
+					$list[] = $candidate;
+				}
+			}
+		}
+		foreach ( array( $seo['sitemap'], '/sitemap_index.xml', '/sitemap.xml', '/wp-sitemap.xml' ) as $path ) {
+			$list[] = home_url( $path );
+		}
+		return array_values( array_unique( $list ) );
+	}
+
+	/**
+	 * <loc> values from a sitemap or index. AIOSEO wraps them in CDATA.
 	 *
 	 * @param string $xml XML.
 	 * @return string[]
 	 */
 	private function locs( $xml ) {
-		if ( ! preg_match_all( '#<loc>\s*([^<\s]+)\s*</loc>#i', (string) $xml, $m ) ) {
+		if ( ! preg_match_all( '#<loc>\s*(?:<!\[CDATA\[)?\s*([^<\s\]]+)\s*(?:\]\]>)?\s*</loc>#i', (string) $xml, $m ) ) {
 			return array();
 		}
 		return array_values( array_unique( array_map( 'html_entity_decode', $m[1] ) ) );

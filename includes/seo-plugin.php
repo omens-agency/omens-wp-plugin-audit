@@ -19,17 +19,7 @@ function omens_audit_seo_plugin() {
 	$has    = static function ( $file ) use ( $active ) {
 		return in_array( $file, $active, true );
 	};
-	if ( $has( 'omens-wp-plugin-seo/omens-wp-plugin-seo.php' ) || function_exists( 'omens_seo_get_description' ) ) {
-		$plugin = array(
-			'slug'            => 'omens-seo',
-			'name'            => 'Omens SEO',
-			'description_key' => 'seo_description',
-			'noindex'         => static function ( $post_id ) {
-				return '1' === (string) get_post_meta( $post_id, 'seo_noindex', true );
-			},
-			'sitemap'         => '/wp-sitemap.xml',
-		);
-	} elseif ( $has( 'wordpress-seo/wp-seo.php' ) || $has( 'wordpress-seo-premium/wp-seo-premium.php' ) ) {
+	if ( $has( 'wordpress-seo/wp-seo.php' ) || $has( 'wordpress-seo-premium/wp-seo-premium.php' ) ) {
 		$plugin = array(
 			'slug'            => 'yoast',
 			'name'            => 'Yoast SEO',
@@ -56,6 +46,16 @@ function omens_audit_seo_plugin() {
 			'description_key' => '', // Stored in its own table; not read in version 1.
 			'noindex'         => null,
 			'sitemap'         => '/sitemap.xml',
+		);
+	} elseif ( $has( 'omens-wp-plugin-seo/omens-wp-plugin-seo.php' ) || function_exists( 'omens_seo_get_description' ) ) {
+		$plugin = array(
+			'slug'            => 'omens-seo',
+			'name'            => 'Omens SEO',
+			'description_key' => 'seo_description',
+			'noindex'         => static function ( $post_id ) {
+				return '1' === (string) get_post_meta( $post_id, 'seo_noindex', true );
+			},
+			'sitemap'         => '/wp-sitemap.xml',
 		);
 	} else {
 		$plugin = array(
