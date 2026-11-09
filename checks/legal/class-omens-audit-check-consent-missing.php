@@ -53,6 +53,35 @@ class Omens_Audit_Check_Consent_Missing extends Omens_Audit_Check_Base {
 		);
 	}
 
+	/**
+	 * Other consent platforms the check recognizes (1.0.7). A site on one of
+	 * these has a banner; it is just not the house platform, so the finding is
+	 * an info line rather than a serious task (Jake, November 8: Swedish Program
+	 * runs WPConsent, MiresBall runs Beautiful Cookie Consent, both on purpose).
+	 *
+	 * @return array<string, string[]> name => regular expressions.
+	 */
+	public static function other_platforms() {
+		return (array) apply_filters(
+			'omens_audit/other_consent_platforms',
+			array(
+				'WPConsent'                 => array( '#wpconsent#i' ),
+				'Beautiful Cookie Consent'  => array( '#beautiful-and-responsive-cookie-consent#i', '#\bnsc_bar\b#i' ),
+				'Complianz'                 => array( '#complianz#i', '#\bcmplz#i' ),
+				'Cookiebot'                 => array( '#cookiebot\.com#i' ),
+				'iubenda'                   => array( '#iubenda\.com#i' ),
+				'OneTrust'                  => array( '#cookielaw\.org#i', '#onetrust#i' ),
+				'Termly'                    => array( '#termly\.io#i' ),
+				'Osano'                     => array( '#osano\.com#i' ),
+				'Usercentrics'              => array( '#usercentrics#i' ),
+				'Didomi'                    => array( '#didomi#i' ),
+				'Real Cookie Banner'        => array( '#real-cookie-banner#i' ),
+				'GDPR Cookie Compliance'    => array( '#gdpr-cookie-compliance#i', '#moove_gdpr#i' ),
+				'Cookie Notice'             => array( '#/plugins/cookie-notice/#i', '#\bcookie-notice\b#i' ),
+			)
+		);
+	}
+
 	public function run( Omens_Audit_Context $ctx ) {
 		$dom = $ctx->dom( home_url( '/' ) );
 		if ( ! $dom ) {
@@ -64,6 +93,30 @@ class Omens_Audit_Check_Consent_Missing extends Omens_Audit_Check_Base {
 		foreach ( (array) $expected['patterns'] as $p ) {
 			if ( preg_match( $p, $haystack ) ) {
 				return array();
+			}
+		}
+		foreach ( self::other_platforms() as $name => $patterns ) {
+			foreach ( (array) $patterns as $p ) {
+				if ( preg_match( $p, $haystack ) ) {
+					return array(
+						$this->finding(
+							array(
+								'subject'  => 'other-platform',
+								'severity' => 'info',
+								'title'    => sprintf( 'Consent banner is %s, not %s', $name, $expected['name'] ),
+								'summary'  => sprintf( 'The home page loads %s, so a consent banner is in place; %s is the house platform (Management/decisions-log.md, 2026-09-23) and would move over at the site\'s next change window.', $name, $expected['name'] ),
+								'url'      => home_url( '/' ),
+								'fix'      => array(
+									'route'      => 'config',
+									'where'      => 'the consent plugin',
+									'steps'      => array( sprintf( 'Nothing urgent: %s is a working banner. Move the site to %s when its consent setup is next touched (Consent Configuration Standard).', $name, $expected['name'] ) ),
+									'confidence' => 'high',
+								),
+								'evidence' => array( 'matched ' . $p ),
+							)
+						),
+					);
+				}
 			}
 		}
 		return array(
