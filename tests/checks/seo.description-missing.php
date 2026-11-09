@@ -32,6 +32,17 @@ return array(
 		},
 		'expect' => array( 'count' => 0 ),
 	),
+	// Builder templates and fragments have public permalinks but are not pages (1.0.7).
+	'clean_template_and_fragment_types' => array(
+		'setup'  => function ( $t ) {
+			$t->state()['options']['active_plugins'] = array( 'wordpress-seo/wp-seo.php' );
+			omens_test_add_post( array( 'post_type' => 'elementor_library', 'post_name' => 'default-kit', 'post_title' => 'Default Kit' ) );
+			omens_test_add_post( array( 'post_type' => 'wpr_mega_menu', 'post_name' => 'wpr-mega-menu-item-1', 'post_title' => 'wpr-mega-menu-item-1' ) );
+			omens_test_add_post( array( 'post_type' => 'tribe_venue', 'post_name' => 'station-45', 'post_title' => 'Station 45' ) );
+			omens_test_add_post( array( 'post_type' => 'page', 'post_name' => 'about', 'post_title' => 'About', 'meta' => array( '_yoast_wpseo_metadesc' => 'We are Omens.' ) ) );
+		},
+		'expect' => array( 'count' => 0 ),
+	),
 	'cannot_run_without_seo_plugin' => array(
 		'setup'  => function ( $t ) { omens_test_add_post( array( 'post_type' => 'page', 'post_name' => 'about' ) ); },
 		'expect' => array( 'count' => 1, 'severity' => 'info', 'subject' => 'cannot-run' ),

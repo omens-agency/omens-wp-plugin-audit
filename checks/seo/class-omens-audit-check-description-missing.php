@@ -50,7 +50,8 @@ class Omens_Audit_Check_Description_Missing extends Omens_Audit_Check_Base {
 		 *
 		 * @param string[] $skip Post type names.
 		 */
-		$skip     = (array) apply_filters( 'omens_audit/description_skip_types', array() );
+		// Builder templates and fragments are not pages (1.0.7): an Elementor kit or a mega-menu item with no description is not a finding.
+		$skip     = (array) apply_filters( 'omens_audit/description_skip_types', omens_audit_template_post_types() );
 		$findings = array();
 		foreach ( $types as $type ) {
 			if ( in_array( $type, $skip, true ) ) {

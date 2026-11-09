@@ -134,9 +134,11 @@ function omens_audit_legal_pages() {
  * @return string[]
  */
 function omens_audit_template_post_types() {
-	$types = array( 'elementor_library', 'e-landing-page', 'cpt_layouts', 'ct_template', 'oxy_user_library', 'elementskit_template', 'elementskit_content', 'jet-theme-core', 'jet-engine', 'fl-builder-template', 'fl-theme-layout', 'brizy_template', 'tbuilder_layout', 'tbuilder_layout_part', 'us_page_block', 'kadence_element', 'blocksy_content_block', 'generateblocks_element', 'gp_elements', 'astra-advanced-hook', 'wp_block', 'wp_template', 'wp_template_part', 'wp_navigation' );
+	$types = array( 'elementor_library', 'e-landing-page', 'cpt_layouts', 'ct_template', 'oxy_user_library', 'elementskit_template', 'elementskit_content', 'jet-theme-core', 'jet-engine', 'fl-builder-template', 'fl-theme-layout', 'brizy_template', 'tbuilder_layout', 'tbuilder_layout_part', 'us_page_block', 'kadence_element', 'blocksy_content_block', 'generateblocks_element', 'gp_elements', 'astra-advanced-hook', 'wp_block', 'wp_template', 'wp_template_part', 'wp_navigation',
+		// Fragments with a public permalink but no page behind it, met on the November 2026 fleet: Royal Addons templates and mega-menu items, a mega-menu plugin, JupiterX code and font records, a slider text type, Elementor global links, a Facebook-tab feed, WP Timeline entries (their permalinks redirect), Events Calendar venues and organizers, GravityView views.
+		'wpr_templates', 'wpr_mega_menu', 'ic_mega_menu', 'jupiterx-codes', 'jupiterx-fonts', 'slider_text', 'global-links', 'facebook', 'wp-timeline', 'tribe_venue', 'tribe_organizer', 'gravityview' );
 	/**
-	 * Post types excluded from the sample because they are builder templates.
+	 * Post types excluded from the sample and from per-entry checks because they are builder templates or fragments, not pages.
 	 *
 	 * @param string[] $types Slugs.
 	 */
