@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.7 (2026-11-08)
+
+- **`a11y.img-alt-filename` accepts a one-letter alt.** A single letter is a deliberate description of a glyph icon (the X share button, an "f" for Facebook), not a filename accident, but the filename rule read `x.png` with `alt="X"` as a repeat of a meaningless name (the last false positive of the November 8 sweep, on blackbirdlab.org). An alt that is the whole filename with its extension still fires.
+
 ## 1.0.6 (2026-11-08)
 
 - **`currency.plugins` rolls bundled and unlicensed plugins into one info line per site.** A pending update whose transient entry carries no download package cannot be applied from the site (the plugin shipped inside a purchased theme, or its licence is not active here; WordPress says "Update package not available"), so filing it as a moderate task every month asked for something maintenance cannot do. Those plugins now appear once per site, listed, with the decision the PM records instead (direct licence, removal, or accept with the vulnerability watch). Plugins with a package keep their per-plugin findings. Jake's call, November 8, with the like-for-like rebuild offer for abandoned themes (`Management/decisions-log.md`).

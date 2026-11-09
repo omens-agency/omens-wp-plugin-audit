@@ -193,3 +193,10 @@ Jake: "Let's work through the Serious findings and Moderate findings you can do 
 ## 2026-11-08: 1.0.6, bundled and unlicensed plugins stop being monthly tasks
 
 Jake, on the abandoned De Jure theme behind wlelaw.com: a theme-bundled plugin cannot be updated through maintenance once the theme author stops shipping, so "WPBakery 7.7.2 has 9.1 pending" every month asks for the impossible. Call (with the like-for-like rebuild offer, `Management/decisions-log.md`): `currency.plugins` detects the case generically, a pending update whose transient entry carries no download package, and rolls those plugins into one info line per site listing them, with the three decisions the PM records (direct licence, removal, accept with the vulnerability watch). `pressable.vuln` is unchanged and stays the signal. Candidates for the rebuild offer are in `Management/rebuild-candidates-2026-11.md`.
+
+## 2026-11-08: 1.0.7, the last false positive of the sweep
+
+- **A one-letter alt is not a filename accident.** Blackbird's AddToAny share button is `x.png` with `alt="X"`, the right word for the X icon, and `a11y.img-alt-filename` read it as a repeat of a meaningless filename because the ported pattern list treats a single letter as meaningless (it is, as a *filename*). `why_meaningless()` now returns clean for an alt that is exactly one letter before the filename comparison; an alt that is the whole filename with its extension still fires. Fixture `clean_single_letter_icon`. The pattern list itself is unchanged so it stays in step with `omens-wp-plugin-media`.
+- Two items the sweep listed for 1.1 turned out to be already in 1.0.5 and 1.0.6 (`data-wp-bind--alt` images and comment avatars are skipped by `a11y.img-alt-missing`), so they are struck rather than rebuilt.
+- Released by Jake with `tools/release.sh 1.0.7` and promoted after the staging check, as before.
+

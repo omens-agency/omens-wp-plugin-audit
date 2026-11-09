@@ -29,6 +29,14 @@ return array(
 		},
 		'expect' => array( 'count' => 1, 'route' => 'code', 'where_contains' => 'header.php', 'summary_contains' => 'kind of thing' ),
 	),
+	// A one-letter alt on a glyph icon (Blackbird's AddToAny X share button, x.png, alt "X") is the right word.
+	'clean_single_letter_icon' => array(
+		'setup'  => function ( $t ) use ( $attachment ) {
+			$attachment( $t, 504, 'x.png', 'X' );
+			$t->page( $t->doc( '<main><a href="https://x.com/share"><img src="/wp-content/uploads/2026/11/x.png" alt="X" class="wp-image-504"></a><img src="/wp-content/themes/t/f.svg" alt="f"></main>' ) );
+		},
+		'expect' => array( 'count' => 0 ),
+	),
 	'clean' => array(
 		'setup'  => function ( $t ) use ( $attachment ) {
 			$attachment( $t, 503, 'IMG_4523.jpg', 'Jake and Ian at the Omens studio' );

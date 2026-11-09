@@ -46,6 +46,12 @@ class Omens_Audit_Check_Img_Alt_Filename extends Omens_Audit_Check_Base {
 		if ( preg_match( '/\.(jpe?g|png|gif|webp|svg|avif|bmp|tiff?)$/i', $alt ) ) {
 			return 'it is a filename with its extension';
 		}
+		// A single letter is a deliberate description of a glyph icon (the X share
+		// button, an "f" for Facebook), not a filename accident: the filename rule
+		// would read x.png with alt "X" as a repeat of a meaningless name (1.0.7).
+		if ( preg_match( '/^\p{L}$/u', $alt ) ) {
+			return '';
+		}
 		$stem = omens_audit_filename_stem( $src );
 		if ( '' !== $stem && strcasecmp( preg_replace( '/[\s_-]+/', '', $alt ), preg_replace( '/[\s_-]+/', '', $stem ) ) === 0 && omens_audit_is_meaningless( $stem ) ) {
 			return 'it repeats the meaningless filename';
