@@ -272,7 +272,9 @@ Client administrators read the Plugins screen, and three house plugins described
 
 **Released the same day.** All three through the pre-release path: installed on the Higgs staging site (audit 19 checks in 14.0 s, export clean; security probes: `?author=1` 302 to home, `/wp/v2/users` 401, users sitemap 301, author sitemap 0 `<loc>`; Alt Text named an uploaded `kitchen_remodel@2x.png` "Kitchen Remodel" and the test attachment was deleted), then `VERIFIED=1 tools/promote.sh`. On Higgs production the updater offers all three and the `auto_update_plugin` filter accepts them, so the fleet applies them unattended within about a day; not installed by hand.
 
-## 2026-11-10: slider tables in `seo.staging-links` (1.0.9)
+## 2026-11-10: slider tables in `seo.staging-links` (1.0.10)
+
+(Committed as "1.0.9" in 46d45de before it was clear another session had already released 1.0.9 that afternoon with a new Plugins-screen description; the slider change ships as 1.0.10.)
 
 Jake asked what "add the slider tables" meant, then "Yes, run the slider sweep first", then "Yes, build it". The read-only sweep found staging or local hosts in 11 sliders on 6 of the 19 sites with slider tables, and loading the pages that use them showed only two reach visitors (the home page sliders on estebaninteriors.com and hotelsanbuena.com). Flagging every slider would have filed seven tasks for sliders nobody sees, so the rule is placement:
 
