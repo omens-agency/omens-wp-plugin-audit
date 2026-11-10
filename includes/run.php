@@ -166,6 +166,7 @@ function omens_audit_run( array $opts = array(), $progress = null ) {
 			'admins'     => omens_audit_inventory_admins(),
 			'mu_plugins' => omens_audit_inventory_mu_plugins(),
 			'plugins'    => omens_audit_inventory_plugins(),
+			'site_facts' => omens_audit_inventory_site_facts(),
 		),
 		'fetch_seconds'  => round( $ctx->fetch_seconds, 2 ),
 		'duration_ms'    => (int) round( ( microtime( true ) - $started ) * 1000 ),

@@ -133,3 +133,100 @@ function omens_audit_inventory_plugins() {
 	}
 	return $list;
 }
+
+/**
+ * Facts the central run needs to judge a theme-bundled plugin's vulnerability: whether the
+ * theme offers an update, who can sign in below administrator, and which plugins the theme
+ * itself registers. Read-only, and nothing here is compared on the site.
+ *
+ * - `themes`: the parent theme and the active stylesheet, with the update WordPress knows of.
+ * - `roles`: every role that has users, with a level read from its capabilities
+ *   (5 manage_options, 4 edit_others_posts, 3 publish_posts, 2 edit_posts, 1 anything else),
+ *   so a custom role counts for what it can do rather than what it is called.
+ * - `theme_plugin_slugs`: every `'slug' => '...'` the theme's PHP registers (TGMPA and the
+ *   like). A plugin with no update channel of its own that the theme registers is bundled.
+ *
+ * @return array
+ */
+function omens_audit_inventory_site_facts() {
+	$level = static function ( $role ) {
+		if ( ! $role ) {
+			return 1;
+		}
+		if ( $role->has_cap( 'manage_options' ) ) {
+			return 5;
+		}
+		if ( $role->has_cap( 'edit_others_posts' ) ) {
+			return 4;
+		}
+		if ( $role->has_cap( 'publish_posts' ) ) {
+			return 3;
+		}
+		return $role->has_cap( 'edit_posts' ) ? 2 : 1;
+	};
+
+	$facts = array(
+		'collected'          => gmdate( 'c' ),
+		'users_can_register' => (bool) get_option( 'users_can_register' ),
+		'default_role'       => (string) get_option( 'default_role' ),
+		'roles'              => array(),
+		'themes'             => array(),
+		'theme_plugin_slugs' => array(),
+	);
+	$facts['default_role_level'] = $level( get_role( $facts['default_role'] ) );
+
+	$counts = count_users();
+	foreach ( (array) ( $counts['avail_roles'] ?? array() ) as $slug => $n ) {
+		if ( $n ) {
+			$facts['roles'][ (string) $slug ] = array(
+				'users' => (int) $n,
+				'level' => $level( get_role( $slug ) ),
+			);
+		}
+	}
+
+	$updates = get_site_transient( 'update_themes' );
+	$dirs    = array();
+	foreach ( array_unique( array( get_template(), get_stylesheet() ) ) as $slug ) {
+		$theme  = wp_get_theme( $slug );
+		$dirs[] = $theme->get_stylesheet_directory();
+		$facts['themes'][] = array(
+			'slug'    => (string) $slug,
+			'name'    => (string) $theme->get( 'Name' ),
+			'version' => (string) $theme->get( 'Version' ),
+			'update'  => ( is_object( $updates ) && isset( $updates->response[ $slug ]['new_version'] ) ) ? (string) $updates->response[ $slug ]['new_version'] : '',
+			'parent'  => get_template() === $slug,
+		);
+	}
+
+	$found = array();
+	$seen  = 0;
+	foreach ( $dirs as $dir ) {
+		if ( ! is_dir( $dir ) ) {
+			continue;
+		}
+		$files = new RecursiveIteratorIterator( new RecursiveDirectoryIterator( $dir, FilesystemIterator::SKIP_DOTS ) );
+		foreach ( $files as $file ) {
+			if ( $seen > 4000 ) {
+				break;
+			}
+			if ( '.php' !== substr( $file->getFilename(), -4 ) || $file->getSize() > 400000 ) {
+				continue;
+			}
+			++$seen;
+			// phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- local theme file.
+			$source = (string) file_get_contents( $file->getPathname() );
+			if ( false === strpos( $source, 'slug' ) ) {
+				continue;
+			}
+			if ( preg_match_all( '/[\'"]slug[\'"]\s*=>\s*[\'"]([A-Za-z0-9_\-]{2,60})[\'"]/', $source, $m ) ) {
+				foreach ( $m[1] as $slug ) {
+					$found[ $slug ] = true;
+				}
+			}
+		}
+	}
+	$facts['theme_plugin_slugs'] = array_keys( $found );
+
+	return $facts;
+}

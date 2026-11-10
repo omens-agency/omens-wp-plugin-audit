@@ -246,6 +246,20 @@ function current_user_can( $cap ) { $u = wp_get_current_user(); return $u ? $u->
 function wp_get_current_user() { $id = $GLOBALS['omens_test']['current_user']; return $id ? get_userdata( $id ) : new WP_User( array( 'ID' => 0, 'user_email' => '' ) ); }
 class WP_Roles_Stub { public $roles; public function __construct() { $this->roles = $GLOBALS['omens_test']['roles']; } }
 function wp_roles() { return new WP_Roles_Stub(); }
+class WP_Role_Stub {
+	private $caps;
+	public function __construct( $caps ) { $this->caps = (array) $caps; }
+	public function has_cap( $cap ) { return ! empty( $this->caps[ $cap ] ); }
+}
+function get_role( $slug ) {
+	$roles = $GLOBALS['omens_test']['roles'];
+	return isset( $roles[ $slug ] ) ? new WP_Role_Stub( $roles[ $slug ]['capabilities'] ?? array() ) : null;
+}
+function count_users() {
+	$avail = array();
+	foreach ( $GLOBALS['omens_test']['users'] as $u ) { foreach ( (array) $u->roles as $r ) { $avail[ $r ] = ( $avail[ $r ] ?? 0 ) + 1; } }
+	return array( 'total_users' => count( $GLOBALS['omens_test']['users'] ), 'avail_roles' => $avail );
+}
 
 // --- Theme, plugins -----------------------------------------------------------
 class WP_Theme_Stub {

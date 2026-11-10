@@ -48,6 +48,10 @@ for k in ("schema","plugin_version","run_at","host","environment","build_type","
 assert "security.file-edit-enabled" in r["checks"], r["checks"]
 assert r["host"] and r["environment"], r
 assert isinstance(r["inventory"]["admins"], list) and isinstance(r["inventory"]["mu_plugins"], list) and isinstance(r["inventory"]["plugins"], list)
+sf = r["inventory"]["site_facts"]
+assert sf["themes"] and all(k in sf["themes"][0] for k in ("slug", "name", "version", "update", "parent")), sf["themes"]
+assert sf["roles"] and all(1 <= v["level"] <= 5 and v["users"] > 0 for v in sf["roles"].values()), sf["roles"]
+assert isinstance(sf["users_can_register"], bool) and isinstance(sf["theme_plugin_slugs"], list) and 1 <= sf["default_role_level"] <= 5, sf
 f = r["findings"]
 assert isinstance(f, list)
 if f:
