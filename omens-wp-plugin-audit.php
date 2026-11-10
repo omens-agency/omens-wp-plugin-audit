@@ -3,7 +3,7 @@
  * Plugin Name:       Omens Site Audit
  * Plugin URI:        https://github.com/omens-agency/omens-wp-plugin-audit
  * Update URI:        https://github.com/omens-agency/omens-wp-plugin-audit
- * Description:       A stateless audit sensor: runs the Omens site checks (security, currency, SEO, accessibility, legal) on demand or monthly, keeps only the latest run, and exports it for the central maintenance audit. WP-CLI: wp omens-audit run | export | checks.
+ * Description:       Checks this site for security, search, accessibility, and privacy issues and reports them to Omens. It changes nothing on your pages.
  * Version:           1.0.8
  * Requires at least: 6.4
  * Tested up to:      7.1
