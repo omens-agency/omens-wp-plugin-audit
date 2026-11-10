@@ -285,3 +285,4 @@ Jake asked what "add the slider tables" meant, then "Yes, run the slider sweep f
 
 Tested with two new fixture cases (placed slider, unused and trashed sliders, a backup table, a style table, the Adminimize toolbar cache, a slider on the site's own host; 120 in all) and by running the class read-only on the six slider sites, where it matched the sweep exactly. The central run needs no change: slider locations are content locations, and the task gains the slider re-save step only when one is listed.
 
+**Released the same evening.** `tools/release.sh 1.0.10` (pre-release), installed on the Higgs staging site (19 checks, `seo.staging-links` skipped as staging, `version_compare` confirmed 1.0.10 above 1.0.9), `VERIFIED=1 tools/promote.sh 1.0.10`, then installed over SSH on all 35 enabled sites, which were still on 1.0.8 (1.0.9 had not auto-applied yet); all 35 home pages returned 200 afterwards.
