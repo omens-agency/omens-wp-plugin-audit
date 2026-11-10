@@ -161,7 +161,7 @@ function omens_audit_inventory_site_facts() {
 		'roles'                => array(),
 		'themes'               => array(),
 		'theme_plugin_slugs'   => array(),
-		'theme_plugin_sources' => array(),
+		'theme_plugin_sources' => new stdClass(), // A map; an empty PHP array would export as a JSON list.
 	);
 
 	try {
@@ -191,7 +191,7 @@ function omens_audit_inventory_site_facts() {
 
 		$scan                          = omens_audit_theme_registered_plugins( $dirs );
 		$facts['theme_plugin_slugs']   = array_keys( $scan['slugs'] );
-		$facts['theme_plugin_sources'] = $scan['slugs'];
+		$facts['theme_plugin_sources'] = $scan['slugs'] ? $scan['slugs'] : new stdClass();
 		if ( $scan['note'] ) {
 			$facts['theme_scan_note'] = $scan['note'];
 		}

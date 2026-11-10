@@ -284,7 +284,12 @@ function get_plugin_data( $f ) { return array(); }
 
 // --- DB -------------------------------------------------------------------------
 class WPDB_Stub {
-	public $prefix = 'wp_'; public $usermeta = 'wp_usermeta'; public $users = 'wp_users'; public $postmeta = 'wp_postmeta'; public $posts = 'wp_posts';
+	public $prefix = 'wp_'; public $usermeta = 'wp_usermeta'; public $users = 'wp_users'; public $postmeta = 'wp_postmeta'; public $posts = 'wp_posts'; public $options = 'wp_options'; public $termmeta = 'wp_termmeta';
+	// Rows a fixture puts in db_rows[table]; the SQL filter is not applied, so checks re-check in PHP what they rely on.
+	public function get_results( $q ) {
+		if ( preg_match( '/FROM\s+(\S+)/', $q, $m ) && isset( $GLOBALS['omens_test']['db_rows'][ $m[1] ] ) ) { return array_map( function ( $r ) { return (object) $r; }, $GLOBALS['omens_test']['db_rows'][ $m[1] ] ); }
+		return array();
+	}
 	public function get_var( $q ) {
 		if ( preg_match( "/SHOW TABLES LIKE '([^']+)'/", $q, $m ) ) { return in_array( $m[1], $GLOBALS['omens_test']['db_tables'], true ) ? $m[1] : null; }
 		return null;

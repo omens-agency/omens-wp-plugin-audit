@@ -31,6 +31,7 @@ function omens_audit_checks() {
 		'Omens_Audit_Check_Indexing_Blocked'    => 'seo/class-omens-audit-check-indexing-blocked.php',
 		'Omens_Audit_Check_Sitemap'             => 'seo/class-omens-audit-check-sitemap.php',
 		'Omens_Audit_Check_Description_Missing' => 'seo/class-omens-audit-check-description-missing.php',
+		'Omens_Audit_Check_Staging_Links'       => 'seo/class-omens-audit-check-staging-links.php',
 		'Omens_Audit_Check_Lang_Missing'        => 'a11y/class-omens-audit-check-lang-missing.php',
 		'Omens_Audit_Check_Img_Alt_Missing'     => 'a11y/class-omens-audit-check-img-alt-missing.php',
 		'Omens_Audit_Check_Link_Empty'          => 'a11y/class-omens-audit-check-link-empty.php',
