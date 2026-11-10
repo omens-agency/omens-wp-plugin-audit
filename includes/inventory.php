@@ -140,93 +140,167 @@ function omens_audit_inventory_plugins() {
  * itself registers. Read-only, and nothing here is compared on the site.
  *
  * - `themes`: the parent theme and the active stylesheet, with the update WordPress knows of.
- * - `roles`: every role that has users, with a level read from its capabilities
- *   (5 manage_options, 4 edit_others_posts, 3 publish_posts, 2 edit_posts, 1 anything else),
- *   so a custom role counts for what it can do rather than what it is called.
- * - `theme_plugin_slugs`: every `'slug' => '...'` the theme's PHP registers (TGMPA and the
- *   like). A plugin with no update channel of its own that the theme registers is bundled.
+ * - `roles`: every role that has users, with a level read from its capabilities, so a custom
+ *   role counts for what it can do rather than what it is called. A role WordPress cannot
+ *   resolve is reported `unresolved` with no level; the central run treats that as able to
+ *   reach anything, so an unknown role never hides a finding.
+ * - `theme_plugin_slugs`: plugin slugs the theme's PHP registers, only when the theme ships
+ *   TGMPA, with the file each was found in (`theme_plugin_sources`). The central run uses
+ *   this as a hint beside its own list, and reports every plugin it sets aside because of it.
+ *
+ * The whole thing fails soft: an error is reported in `error` and the run carries on.
  *
  * @return array
  */
 function omens_audit_inventory_site_facts() {
-	$level = static function ( $role ) {
-		if ( ! $role ) {
-			return 1;
-		}
-		if ( $role->has_cap( 'manage_options' ) ) {
-			return 5;
-		}
-		if ( $role->has_cap( 'edit_others_posts' ) ) {
-			return 4;
-		}
-		if ( $role->has_cap( 'publish_posts' ) ) {
-			return 3;
-		}
-		return $role->has_cap( 'edit_posts' ) ? 2 : 1;
-	};
-
 	$facts = array(
-		'collected'          => gmdate( 'c' ),
-		'users_can_register' => (bool) get_option( 'users_can_register' ),
-		'default_role'       => (string) get_option( 'default_role' ),
-		'roles'              => array(),
-		'themes'             => array(),
-		'theme_plugin_slugs' => array(),
+		'collected'            => gmdate( 'c' ),
+		'users_can_register'   => (bool) get_option( 'users_can_register' ),
+		'default_role'         => (string) get_option( 'default_role' ),
+		'default_role_level'   => null,
+		'roles'                => array(),
+		'themes'               => array(),
+		'theme_plugin_slugs'   => array(),
+		'theme_plugin_sources' => array(),
 	);
-	$facts['default_role_level'] = $level( get_role( $facts['default_role'] ) );
 
-	$counts = count_users();
-	foreach ( (array) ( $counts['avail_roles'] ?? array() ) as $slug => $n ) {
-		if ( $n ) {
-			$facts['roles'][ (string) $slug ] = array(
-				'users' => (int) $n,
-				'level' => $level( get_role( $slug ) ),
+	try {
+		$default                     = omens_audit_role_level( $facts['default_role'] );
+		$facts['default_role_level'] = $default['level'];
+
+		$counts = count_users();
+		foreach ( (array) ( $counts['avail_roles'] ?? array() ) as $slug => $n ) {
+			if ( $n ) {
+				$facts['roles'][ (string) $slug ] = array( 'users' => (int) $n ) + omens_audit_role_level( (string) $slug );
+			}
+		}
+
+		$updates = get_site_transient( 'update_themes' );
+		$dirs    = array();
+		foreach ( array_unique( array( get_template(), get_stylesheet() ) ) as $slug ) {
+			$theme  = wp_get_theme( $slug );
+			$dirs[] = $theme->get_stylesheet_directory();
+			$facts['themes'][] = array(
+				'slug'    => (string) $slug,
+				'name'    => (string) $theme->get( 'Name' ),
+				'version' => (string) $theme->get( 'Version' ),
+				'update'  => ( is_object( $updates ) && isset( $updates->response[ $slug ]['new_version'] ) ) ? (string) $updates->response[ $slug ]['new_version'] : '',
+				'parent'  => get_template() === $slug,
 			);
 		}
-	}
 
-	$updates = get_site_transient( 'update_themes' );
-	$dirs    = array();
-	foreach ( array_unique( array( get_template(), get_stylesheet() ) ) as $slug ) {
-		$theme  = wp_get_theme( $slug );
-		$dirs[] = $theme->get_stylesheet_directory();
-		$facts['themes'][] = array(
-			'slug'    => (string) $slug,
-			'name'    => (string) $theme->get( 'Name' ),
-			'version' => (string) $theme->get( 'Version' ),
-			'update'  => ( is_object( $updates ) && isset( $updates->response[ $slug ]['new_version'] ) ) ? (string) $updates->response[ $slug ]['new_version'] : '',
-			'parent'  => get_template() === $slug,
-		);
-	}
-
-	$found = array();
-	$seen  = 0;
-	foreach ( $dirs as $dir ) {
-		if ( ! is_dir( $dir ) ) {
-			continue;
+		$scan                          = omens_audit_theme_registered_plugins( $dirs );
+		$facts['theme_plugin_slugs']   = array_keys( $scan['slugs'] );
+		$facts['theme_plugin_sources'] = $scan['slugs'];
+		if ( $scan['note'] ) {
+			$facts['theme_scan_note'] = $scan['note'];
 		}
-		$files = new RecursiveIteratorIterator( new RecursiveDirectoryIterator( $dir, FilesystemIterator::SKIP_DOTS ) );
-		foreach ( $files as $file ) {
-			if ( $seen > 4000 ) {
-				break;
-			}
-			if ( '.php' !== substr( $file->getFilename(), -4 ) || $file->getSize() > 400000 ) {
-				continue;
-			}
-			++$seen;
-			// phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- local theme file.
-			$source = (string) file_get_contents( $file->getPathname() );
-			if ( false === strpos( $source, 'slug' ) ) {
-				continue;
-			}
-			if ( preg_match_all( '/[\'"]slug[\'"]\s*=>\s*[\'"]([A-Za-z0-9_\-]{2,60})[\'"]/', $source, $m ) ) {
-				foreach ( $m[1] as $slug ) {
-					$found[ $slug ] = true;
-				}
-			}
-		}
+	} catch ( \Throwable $e ) {
+		$facts['error'] = $e->getMessage();
 	}
-	$facts['theme_plugin_slugs'] = array_keys( $found );
 
 	return $facts;
+}
+
+/**
+ * What a role can do, as a level: 5 administers the site or its code or users, 4 edits other
+ * people's content, 3 publishes, 2 writes, 1 only reads. The "none" entry WordPress reports for
+ * users with no role is level 1. Any other role that cannot be resolved has no level and is
+ * marked unresolved, so the central run assumes the worst rather than the least.
+ *
+ * @param string $slug Role slug.
+ * @return array{level:int|null,unresolved?:bool}
+ */
+function omens_audit_role_level( $slug ) {
+	if ( 'none' === $slug ) {
+		return array( 'level' => 1 );
+	}
+	$role = get_role( $slug );
+	if ( ! $role ) {
+		return array( 'level' => null, 'unresolved' => true );
+	}
+	foreach ( array( 'manage_options', 'edit_plugins', 'edit_themes', 'install_plugins', 'activate_plugins', 'edit_users', 'promote_users', 'create_users' ) as $cap ) {
+		if ( $role->has_cap( $cap ) ) {
+			return array( 'level' => 5 );
+		}
+	}
+	if ( $role->has_cap( 'edit_others_posts' ) || $role->has_cap( 'unfiltered_html' ) ) {
+		return array( 'level' => 4 );
+	}
+	if ( $role->has_cap( 'publish_posts' ) ) {
+		return array( 'level' => 3 );
+	}
+	return array( 'level' => ( $role->has_cap( 'edit_posts' ) || $role->has_cap( 'upload_files' ) ) ? 2 : 1 );
+}
+
+/**
+ * Plugin slugs a theme registers through TGMPA, with the file each was found in.
+ *
+ * Bounded on every axis: 5,000 directory entries, 20 MB read, 400 KB a file, 200 slugs, regular
+ * files only, nothing that resolves outside the theme folder, and dependency folders skipped.
+ * A theme that does not ship TGMPA yields nothing: a stray `'slug' =>` in a theme with no
+ * plugin installer is not a registration.
+ *
+ * @param string[] $dirs Theme directories.
+ * @return array{slugs:array<string,string>,note:string}
+ */
+function omens_audit_theme_registered_plugins( array $dirs ) {
+	$found   = array();
+	$entries = 0;
+	$bytes   = 0;
+	$tgmpa   = false;
+	$note    = '';
+	foreach ( $dirs as $dir ) {
+		$root = is_dir( $dir ) ? realpath( $dir ) : false;
+		if ( ! $root ) {
+			continue;
+		}
+		try {
+			$files = new RecursiveIteratorIterator(
+				new RecursiveCallbackFilterIterator(
+					new RecursiveDirectoryIterator( $root, FilesystemIterator::SKIP_DOTS ),
+					static function ( $current ) {
+						return ! in_array( $current->getFilename(), array( 'node_modules', 'vendor', '.git', '.claude' ), true );
+					}
+				),
+				RecursiveIteratorIterator::LEAVES_ONLY,
+				RecursiveIteratorIterator::CATCH_GET_CHILD
+			);
+			foreach ( $files as $file ) {
+				if ( ++$entries > 5000 || $bytes > 20 * 1024 * 1024 ) {
+					$note = 'theme scan stopped at its limit';
+					break 2;
+				}
+				if ( ! $file->isFile() || $file->isLink() || '.php' !== substr( $file->getFilename(), -4 ) || $file->getSize() > 400000 ) {
+					continue;
+				}
+				$real = realpath( $file->getPathname() );
+				if ( ! $real || 0 !== strpos( $real, $root . DIRECTORY_SEPARATOR ) ) {
+					continue;
+				}
+				// phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- local theme file.
+				$source = (string) file_get_contents( $real );
+				$bytes += strlen( $source );
+				if ( false !== stripos( $source, 'tgmpa' ) || false !== strpos( $source, 'TGM_Plugin_Activation' ) ) {
+					$tgmpa = true;
+				}
+				if ( false === strpos( $source, 'slug' ) ) {
+					continue;
+				}
+				if ( preg_match_all( '/[\'"]slug[\'"]\s*=>\s*[\'"]([A-Za-z0-9_\-]{2,60})[\'"]/', $source, $m ) ) {
+					foreach ( $m[1] as $slug ) {
+						if ( ! isset( $found[ $slug ] ) && count( $found ) < 200 ) {
+							$found[ $slug ] = ltrim( substr( $real, strlen( $root ) ), DIRECTORY_SEPARATOR );
+						}
+					}
+				}
+			}
+		} catch ( \Throwable $e ) {
+			$note = 'theme scan failed: ' . $e->getMessage();
+		}
+	}
+	return array(
+		'slugs' => $tgmpa ? $found : array(),
+		'note'  => $note,
+	);
 }
