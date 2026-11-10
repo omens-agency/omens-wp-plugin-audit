@@ -4,7 +4,7 @@
  * Plugin URI:        https://github.com/omens-agency/omens-wp-plugin-audit
  * Update URI:        https://github.com/omens-agency/omens-wp-plugin-audit
  * Description:       Checks this site for security, search, accessibility, and privacy issues and reports them to Omens. It changes nothing on your pages.
- * Version:           1.0.8
+ * Version:           1.0.9
  * Requires at least: 6.4
  * Tested up to:      7.1
  * Requires PHP:      8.1
@@ -24,7 +24,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 // Guarded so a second copy (a "-main" folder beside the release folder, the
 // case the Plugins-screen notice in includes/updates.php is for) warns about
 // nothing and the first copy's values stand.
-defined( 'OMENS_AUDIT_VERSION' ) || define( 'OMENS_AUDIT_VERSION', '1.0.8' );
+defined( 'OMENS_AUDIT_VERSION' ) || define( 'OMENS_AUDIT_VERSION', '1.0.9' );
 defined( 'OMENS_AUDIT_FILE' ) || define( 'OMENS_AUDIT_FILE', __FILE__ );
 defined( 'OMENS_AUDIT_DIR' ) || define( 'OMENS_AUDIT_DIR', plugin_dir_path( __FILE__ ) );
 defined( 'OMENS_AUDIT_SCHEMA' ) || define( 'OMENS_AUDIT_SCHEMA', 1 );
