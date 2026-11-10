@@ -271,3 +271,15 @@ Jake: "We should also look for local or staging links that may be present after 
 Client administrators read the Plugins screen, and three house plugins described themselves in internal terms. From the copy team's naming pass (Jake, November 10): every house plugin is named "Omens" plus the plain name of its job, slugs and repos never change, and Omens Media Metadata becomes **Omens Alt Text** (display name only; the updater keys on the slug). The site audit also joins the hosting plan as "Monthly site audit", with fixes to code Omens wrote free (Jake, November 10); that copy is committed in the portal but not deployed until the December run files.
 
 **Released the same day.** All three through the pre-release path: installed on the Higgs staging site (audit 19 checks in 14.0 s, export clean; security probes: `?author=1` 302 to home, `/wp/v2/users` 401, users sitemap 301, author sitemap 0 `<loc>`; Alt Text named an uploaded `kitchen_remodel@2x.png` "Kitchen Remodel" and the test attachment was deleted), then `VERIFIED=1 tools/promote.sh`. On Higgs production the updater offers all three and the `auto_update_plugin` filter accepts them, so the fleet applies them unattended within about a day; not installed by hand.
+
+## 2026-11-10: slider tables in `seo.staging-links` (1.0.9)
+
+Jake asked what "add the slider tables" meant, then "Yes, run the slider sweep first", then "Yes, build it". The read-only sweep found staging or local hosts in 11 sliders on 6 of the 19 sites with slider tables, and loading the pages that use them showed only two reach visitors (the home page sliders on estebaninteriors.com and hotelsanbuena.com). Flagging every slider would have filed seven tasks for sliders nobody sees, so the rule is placement:
+
+- **Placed on a published page** (shortcode in content, Elementor or WPBakery data in post meta, an alias-only theme slider setting, or a theme option): joins the content finding, named with its page.
+- **Placed nowhere, or in LayerSlider's trash:** one info line per site (`sliders-unused`), never a task.
+- **A reference must stand as a word of its own.** The first run counted burninstitute's three demo sliders as placed because Adminimize's saved copy of the admin toolbar lists every slider as `data-alias="home"`, and the bare `alias="home"` needle matched inside it. `mentions()` requires no letter, digit, underscore or hyphen before the match.
+- **Skipped tables:** `_bkp`, `_backup`, revisions, and the CSS, layer-animation and navigation tables.
+
+Tested with two new fixture cases (placed slider, unused and trashed sliders, a backup table, a style table, the Adminimize toolbar cache, a slider on the site's own host; 120 in all) and by running the class read-only on the six slider sites, where it matched the sweep exactly. The central run needs no change: slider locations are content locations, and the task gains the slider re-save step only when one is listed.
+

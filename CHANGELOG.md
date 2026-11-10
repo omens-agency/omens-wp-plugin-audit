@@ -2,6 +2,7 @@
 
 ## 1.0.9
 
+- **`seo.staging-links` reads Slider Revolution and LayerSlider.** Both keep slides in their own tables (`revslider_*` for v6 and v7, `layerslider`), which 1.0.8 never read, so a slide loading its images from staging was invisible. A slider holding a staging or local host joins the site's content finding only when it is placed on a published page (its shortcode, an Elementor or WPBakery widget, a theme's slider setting, or a theme option); the task names the slider and the page and adds "open the slider and save it once" so the slider's own cache rebuilds. Sliders placed nowhere, or in LayerSlider's trash, are listed once per site at info, as cleanup. Backup, revision and style tables are skipped. A slider reference counts only as a word of its own, so an admin-menu cache that lists every slider as `data-alias="..."` (Adminimize) places none of them. The November 10 sweep: two home-page sliders loading from staging (estebaninteriors.com, hotelsanbuena.com), one placed slider with a `localhost` setting (crosbyattorney.com), and seven unused sliders on four sites.
 - **Plain-language description on the Plugins screen.** Client administrators see the plugin's description, and it read as internal notes ("a stateless audit sensor", WP-CLI commands). It now says what the plugin does for the site. No change to the checks or the export.
 
 ## 1.0.8 (2026-11-10)
