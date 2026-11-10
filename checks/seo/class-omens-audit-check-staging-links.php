@@ -236,6 +236,24 @@ class Omens_Audit_Check_Staging_Links extends Omens_Audit_Check_Base {
 			}
 		}
 
+		// Slider Revolution and LayerSlider keep slides in their own tables. A slider placed on a
+		// published page joins the content finding; one placed nowhere is listed once, at info.
+		$unused = array();
+		foreach ( $this->sliders( $re, $own ) as $key => $sl ) {
+			$placed = $sl['deleted'] ? array() : $sl['placed'];
+			$name   = sprintf( '%s slider "%s"', $sl['plugin'], omens_audit_trim( '' !== $sl['name'] ? $sl['name'] : '#' . $sl['id'], 50 ) );
+			if ( ! $placed ) {
+				$unused[] = $name . ( $sl['deleted'] ? ' (in the trash)' : '' ) . ': ' . implode( ', ', array_keys( $sl['hosts'] ) );
+				continue;
+			}
+			$first                               = reset( $placed );
+			$hits['content'][ 'slider:' . $key ] = array(
+				'label'   => $name . ' (on ' . $first['label'] . ( count( $placed ) > 1 ? sprintf( ' and %d more', count( $placed ) - 1 ) : '' ) . ')',
+				'post_id' => (int) $first['post_id'],
+				'hosts'   => $sl['hosts'],
+			);
+		}
+
 		// Theme files, parent and child: a hardcoded host in a template or stylesheet.
 		$theme_root = rtrim( dirname( get_stylesheet_directory() ), '/' ) . '/';
 		$seen       = 0;
@@ -268,7 +286,238 @@ class Omens_Audit_Check_Staging_Links extends Omens_Audit_Check_Base {
 			}
 		}
 
-		return $this->findings_from( $hits, $ctx, $own );
+		$findings = $this->findings_from( $hits, $ctx, $own );
+		if ( $unused ) {
+			$findings[] = $this->finding(
+				array(
+					'subject'  => 'sliders-unused',
+					'severity' => 'info',
+					'title'    => sprintf( '%d slider%s on no page still point%s at a staging or local host', count( $unused ), 1 === count( $unused ) ? '' : 's', 1 === count( $unused ) ? 's' : '' ),
+					'summary'  => 'Nobody sees these, so nothing is broken; they are cleanup.',
+					'detail'   => omens_audit_trim( implode( ' | ', $unused ), 1200 ),
+					'fix'      => array(
+						'route'      => 'content',
+						'where'      => omens_audit_trim( implode( '; ', $unused ), 400 ),
+						'steps'      => array( 'Delete the sliders if they are not needed. A site-wide search-replace for the host fixes them too.' ),
+						'confidence' => 'high',
+					),
+				)
+			);
+		}
+		return $findings;
+	}
+
+	/**
+	 * Whether $text holds $needle as a reference of its own: not inside a longer word
+	 * such as `data-alias="home"`, which is how admin-menu caches (Adminimize) list
+	 * every slider without placing any of them.
+	 *
+	 * @param string $text   Haystack.
+	 * @param string $needle Needle.
+	 * @return bool
+	 */
+	private static function mentions( $text, $needle ) {
+		return (bool) preg_match( '/(?<![A-Za-z0-9_-])' . preg_quote( $needle, '/' ) . '/', $text );
+	}
+
+	/**
+	 * Hosts in a blob that are neither this site's nor on the ignore list.
+	 *
+	 * @param string   $text Text.
+	 * @param string   $re   self::pattern().
+	 * @param string[] $own  This site's hosts.
+	 * @return array<string, int>
+	 */
+	private static function hosts_in( $text, $re, array $own ) {
+		$hosts = array();
+		if ( is_string( $text ) && '' !== $text && preg_match_all( $re, $text, $m ) ) {
+			foreach ( $m[1] as $h ) {
+				$h = strtolower( $h );
+				if ( ! in_array( $h, $own, true ) && ! self::ignored_host( $h ) ) {
+					$hosts[ $h ] = ( $hosts[ $h ] ?? 0 ) + 1;
+				}
+			}
+		}
+		return $hosts;
+	}
+
+	/**
+	 * Slider Revolution (v6 and v7) and LayerSlider sliders holding a staging or
+	 * local host, with their name and the published places they are put on.
+	 *
+	 * @param string   $re  self::pattern().
+	 * @param string[] $own This site's hosts.
+	 * @return array<string, array> Key => { plugin, id, name, alias, deleted, hosts, placed }.
+	 */
+	private function sliders( $re, array $own ) {
+		global $wpdb;
+		$tables = array();
+		foreach ( array( 'revslider', 'layerslider' ) as $prefix ) {
+			$tables = array_merge( $tables, (array) $wpdb->get_col( $wpdb->prepare( 'SHOW TABLES LIKE %s', $wpdb->esc_like( $wpdb->prefix . $prefix ) . '%' ) ) );
+		}
+		$found = array();
+		$names = array();
+		foreach ( array_unique( $tables ) as $t ) {
+			// Backups, revisions and the style tables hold no slide a visitor sees.
+			if ( ! preg_match( '/^[A-Za-z0-9_]+$/', (string) $t ) || preg_match( '/(_bkp|_backup|_revisions?|_css|_layer_animations|_navigations)\d*$/i', $t ) ) {
+				continue;
+			}
+			$layer = false !== stripos( $t, 'layerslider' );
+			$text  = array();
+			$id    = null;
+			$sid   = null;
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- the table name came from SHOW TABLES and matched [A-Za-z0-9_]+.
+			foreach ( (array) $wpdb->get_results( "SHOW COLUMNS FROM `{$t}`" ) as $c ) {
+				$field = (string) $c->Field; // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
+				if ( ! preg_match( '/^[A-Za-z0-9_]+$/', $field ) ) {
+					continue;
+				}
+				$lower = strtolower( $field );
+				if ( 'id' === $lower ) {
+					$id = $field;
+				} elseif ( 'slider_id' === $lower ) {
+					$sid = $field;
+				}
+				if ( preg_match( '/text|char|json/i', (string) $c->Type ) ) { // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
+					$text[] = $field;
+				}
+			}
+			if ( ! $text || ! $id ) {
+				continue;
+			}
+			$where = array();
+			foreach ( $text as $col ) {
+				foreach ( array( 'localhost', '127.0.0.1', '.local', '.test', 'mystagingwebsite', 'omens.site', 'wpengine', 'flywheelsites', 'kinsta.cloud', 'pantheonsite', 'myftpupload', 'wpcomstaging', 'instawp', 'ngrok' ) as $l ) {
+					$where[] = $wpdb->prepare( "`{$col}` LIKE %s", '%' . $wpdb->esc_like( $l ) . '%' ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- column name from SHOW COLUMNS, matched [A-Za-z0-9_]+.
+				}
+			}
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared -- table from SHOW TABLES, every LIKE prepared, LIMIT a constant.
+			$rows = (array) $wpdb->get_results( "SELECT * FROM `{$t}` WHERE " . implode( ' OR ', $where ) . ' LIMIT ' . self::ROW_LIMIT, ARRAY_A );
+			foreach ( $rows as $r ) {
+				$hosts = self::hosts_in( implode( ' ', array_map( 'strval', array_intersect_key( $r, array_flip( $text ) ) ) ), $re, $own );
+				if ( ! $hosts ) {
+					continue;
+				}
+				$slider = (string) ( $sid && isset( $r[ $sid ] ) ? $r[ $sid ] : $r[ $id ] );
+				$key    = ( $layer ? 'layerslider:' : 'revslider:' ) . $slider;
+				if ( ! isset( $found[ $key ] ) ) {
+					$found[ $key ] = array(
+						'plugin'  => $layer ? 'LayerSlider' : 'Slider Revolution',
+						'id'      => $slider,
+						'name'    => '',
+						'alias'   => '',
+						'deleted' => false,
+						'hosts'   => array(),
+						'placed'  => array(),
+					);
+				}
+				foreach ( $hosts as $h => $count ) {
+					$found[ $key ]['hosts'][ $h ] = ( $found[ $key ]['hosts'][ $h ] ?? 0 ) + $count;
+				}
+				// The slider's own row carries its name; a slide row carries only the slider ID.
+				if ( ! $sid ) {
+					$names[ $key ] = $r;
+				}
+			}
+		}
+		foreach ( $found as $key => &$sl ) {
+			$row = $names[ $key ] ?? $this->slider_row( $sl['plugin'], $sl['id'], $tables );
+			if ( $row ) {
+				$sl['name']    = (string) ( $row['title'] ?? $row['name'] ?? '' );
+				$sl['alias']   = (string) ( $row['alias'] ?? $row['slug'] ?? '' );
+				$sl['deleted'] = ! empty( $row['flag_deleted'] );
+			}
+			$sl['placed'] = $this->slider_placements( $sl );
+		}
+		unset( $sl );
+		return $found;
+	}
+
+	/**
+	 * A slider's own row, for its name and alias.
+	 *
+	 * @param string   $plugin Plugin name.
+	 * @param string   $id     Slider ID.
+	 * @param string[] $tables Slider tables on this site.
+	 * @return array|null
+	 */
+	private function slider_row( $plugin, $id, array $tables ) {
+		global $wpdb;
+		$candidates = 'LayerSlider' === $plugin ? array( $wpdb->prefix . 'layerslider' ) : array( $wpdb->prefix . 'revslider_sliders', $wpdb->prefix . 'revslider_sliders7' );
+		foreach ( $candidates as $t ) {
+			if ( in_array( $t, $tables, true ) ) {
+				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- table name built from $wpdb->prefix and a fixed suffix.
+				$row = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM `{$t}` WHERE id = %d", (int) $id ), ARRAY_A );
+				if ( $row ) {
+					return $row;
+				}
+			}
+		}
+		return null;
+	}
+
+	/**
+	 * Published places a slider is put on: its shortcode in content, a page-builder
+	 * widget, a theme setting that holds its alias, or a theme option.
+	 *
+	 * @param array $sl Slider.
+	 * @return array[] { post_id, label }
+	 */
+	private function slider_placements( array $sl ) {
+		global $wpdb;
+		$alias = $sl['alias'];
+		if ( 'LayerSlider' === $sl['plugin'] ) {
+			$needles = array( 'layerslider id="' . $sl['id'] . '"', "layerslider id='" . $sl['id'] . "'", 'layerslider id=\\"' . $sl['id'] . '\\"' );
+			if ( '' !== $alias ) {
+				$needles[] = 'layerslider id="' . $alias . '"';
+			}
+		} else {
+			$needles = '' === $alias ? array() : array( 'rev_slider alias="' . $alias . '"', 'rev_slider_vc alias="' . $alias . '"', 'alias=\\"' . $alias . '\\"', 'alias="' . $alias . '"', '"alias":"' . $alias . '"', '[rev_slider ' . $alias . ']', 'alias=&quot;' . $alias . '&quot;', 'slidertitle":"' . $alias . '"' );
+		}
+		$skip = self::ignored_post_types();
+		$out  = array();
+		$add  = function ( $id, $type, $title ) use ( &$out, $skip ) {
+			if ( ! in_array( $type, $skip, true ) && ! isset( $out[ (int) $id ] ) ) {
+				$out[ (int) $id ] = array(
+					'post_id' => (int) $id,
+					'label'   => sprintf( '%s "%s" (ID %d)', $type, omens_audit_trim( $title, 40 ), $id ),
+				);
+			}
+		};
+		foreach ( $needles as $needle ) {
+			$like = '%' . $wpdb->esc_like( $needle ) . '%';
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+			foreach ( (array) $wpdb->get_results( $wpdb->prepare( "SELECT ID, post_type, post_status, post_title, post_content FROM {$wpdb->posts} WHERE post_status = 'publish' AND post_content LIKE %s LIMIT 20", $like ) ) as $p ) {
+				if ( 'publish' === $p->post_status && self::mentions( (string) $p->post_content, $needle ) ) {
+					$add( $p->ID, $p->post_type, $p->post_title );
+				}
+			}
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+			foreach ( (array) $wpdb->get_results( $wpdb->prepare( "SELECT m.post_id, m.meta_key, m.meta_value, p.post_type, p.post_status, p.post_title FROM {$wpdb->postmeta} m JOIN {$wpdb->posts} p ON p.ID = m.post_id WHERE p.post_status = 'publish' AND m.meta_value LIKE %s LIMIT 20", $like ) ) as $r ) {
+				if ( 'publish' === $r->post_status && ! self::ignored_meta( $r->meta_key ) && self::mentions( (string) $r->meta_value, $needle ) ) {
+					$add( $r->post_id, $r->post_type, $r->post_title );
+				}
+			}
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+			foreach ( (array) $wpdb->get_results( $wpdb->prepare( "SELECT option_name, option_value FROM {$wpdb->options} WHERE option_value LIKE %s LIMIT 20", $like ) ) as $o ) {
+				if ( ! self::ignored_option( $o->option_name ) && ! preg_match( '/^(revslider|layerslider|rs-|ls-)/i', $o->option_name ) && self::mentions( (string) $o->option_value, $needle ) && ! isset( $out[ 'option:' . $o->option_name ] ) ) {
+					$out[ 'option:' . $o->option_name ] = array(
+						'post_id' => 0,
+						'label'   => 'the ' . $o->option_name . ' option',
+					);
+				}
+			}
+		}
+		// Themes that keep only the alias in a page's slider setting (Qode, ThemeREX page options).
+		if ( '' !== $alias && 'Slider Revolution' === $sl['plugin'] ) {
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+			foreach ( (array) $wpdb->get_results( $wpdb->prepare( "SELECT m.post_id, m.meta_key, m.meta_value, p.post_type, p.post_status, p.post_title FROM {$wpdb->postmeta} m JOIN {$wpdb->posts} p ON p.ID = m.post_id WHERE p.post_status = 'publish' AND m.meta_key LIKE %s AND m.meta_value = %s LIMIT 20", '%slider%', $alias ) ) as $r ) {
+				if ( 'publish' === $r->post_status && false !== stripos( (string) $r->meta_key, 'slider' ) && (string) $r->meta_value === $alias ) {
+					$add( $r->post_id, $r->post_type, $r->post_title );
+				}
+			}
+		}
+		return array_values( $out );
 	}
 
 	/**
@@ -322,7 +571,13 @@ class Omens_Audit_Check_Staging_Links extends Omens_Audit_Check_Base {
 					$url = (string) get_permalink( $loc['post_id'] );
 				}
 			}
-			$more = count( $locations ) > self::LOCATIONS ? sprintf( ' and %d more', count( $locations ) - self::LOCATIONS ) : '';
+			$more    = count( $locations ) > self::LOCATIONS ? sprintf( ' and %d more', count( $locations ) - self::LOCATIONS ) : '';
+			$sliders = (bool) array_filter(
+				array_keys( $locations ),
+				function ( $k ) {
+					return 0 === strpos( (string) $k, 'slider:' );
+				}
+			);
 
 			$places = omens_audit_trim(
 				implode(
@@ -353,7 +608,7 @@ class Omens_Audit_Check_Staging_Links extends Omens_Audit_Check_Base {
 				$steps = array(
 					'Found in: ' . $places . '.',
 					sprintf( 'Run %s, check the table list (leave migration and licence history alone), then run it again without --dry-run.', implode( ' then ', $cmds ) ),
-					'forms' === $group ? 'Purge the edge cache, then submit each form once to confirm.' : 'Purge the edge cache (and Elementor\'s CSS and element cache if the site uses Elementor), then load those pages to confirm.',
+					'forms' === $group ? 'Purge the edge cache, then submit each form once to confirm.' : ( $sliders ? 'Open each slider listed in its slider editor and save it once so its own cache rebuilds. ' : '' ) . 'Purge the edge cache (and Elementor\'s CSS and element cache if the site uses Elementor), then load those pages to confirm.',
 				);
 				if ( 'forms' === $group && $redirects ) {
 					$ids = array_map(

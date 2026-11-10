@@ -286,15 +286,36 @@ function get_plugin_data( $f ) { return array(); }
 class WPDB_Stub {
 	public $prefix = 'wp_'; public $usermeta = 'wp_usermeta'; public $users = 'wp_users'; public $postmeta = 'wp_postmeta'; public $posts = 'wp_posts'; public $options = 'wp_options'; public $termmeta = 'wp_termmeta';
 	// Rows a fixture puts in db_rows[table]; the SQL filter is not applied, so checks re-check in PHP what they rely on.
-	public function get_results( $q ) {
-		if ( preg_match( '/FROM\s+(\S+)/', $q, $m ) && isset( $GLOBALS['omens_test']['db_rows'][ $m[1] ] ) ) { return array_map( function ( $r ) { return (object) $r; }, $GLOBALS['omens_test']['db_rows'][ $m[1] ] ); }
+	public function get_results( $q, $output = OBJECT ) {
+		$rows = $GLOBALS['omens_test']['db_rows'];
+		// SHOW COLUMNS: db_columns[table] if the fixture gave it, else the first row's keys (id columns int, the rest longtext).
+		if ( preg_match( '/^SHOW COLUMNS FROM `?([A-Za-z0-9_]+)`?/', $q, $m ) ) {
+			$cols = $GLOBALS['omens_test']['db_columns'][ $m[1] ] ?? array_map( function ( $k ) { return array( 'Field' => $k, 'Type' => preg_match( '/^(id|slider_id|flag_\w+)$/i', $k ) ? 'int(9)' : 'longtext' ); }, array_keys( (array) ( $rows[ $m[1] ][0] ?? array() ) ) );
+			return array_map( function ( $c ) { return (object) $c; }, $cols );
+		}
+		if ( preg_match( '/FROM\s+`?([A-Za-z0-9_]+)`?/', $q, $m ) && isset( $rows[ $m[1] ] ) ) {
+			return array_map( function ( $r ) use ( $output ) { return ARRAY_A === $output ? (array) $r : (object) $r; }, $rows[ $m[1] ] );
+		}
 		return array();
+	}
+	public function get_row( $q, $output = OBJECT ) {
+		if ( preg_match( '/FROM\s+`?([A-Za-z0-9_]+)`?\s+WHERE\s+id\s*=\s*\'?(\d+)/i', $q, $m ) ) {
+			foreach ( $GLOBALS['omens_test']['db_rows'][ $m[1] ] ?? array() as $r ) {
+				if ( (string) ( $r['id'] ?? '' ) === $m[2] ) { return ARRAY_A === $output ? (array) $r : (object) $r; }
+			}
+		}
+		return null;
 	}
 	public function get_var( $q ) {
 		if ( preg_match( "/SHOW TABLES LIKE '([^']+)'/", $q, $m ) ) { return in_array( $m[1], $GLOBALS['omens_test']['db_tables'], true ) ? $m[1] : null; }
 		return null;
 	}
 	public function get_col( $q ) {
+		// SHOW TABLES LIKE with a wildcard: match db_tables the way MySQL would.
+		if ( preg_match( "/SHOW TABLES LIKE '([^']+)'/", $q, $m ) && false !== strpos( $m[1], '%' ) ) {
+			$re = '/^' . str_replace( '%', '.*', preg_quote( str_replace( '\\_', '_', $m[1] ), '/' ) ) . '$/';
+			return array_values( array_filter( $GLOBALS['omens_test']['db_tables'], function ( $t ) use ( $re ) { return (bool) preg_match( $re, $t ); } ) );
+		}
 		if ( preg_match( '/FROM\s+(\S+)/', $q, $m ) && isset( $GLOBALS['omens_test']['db_rows'][ $m[1] ] ) ) { return array_map( function ( $r ) { return reset( $r ); }, $GLOBALS['omens_test']['db_rows'][ $m[1] ] ); }
 		return array();
 	}
