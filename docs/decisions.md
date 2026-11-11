@@ -307,3 +307,8 @@ Jake asked the dev team for a full audit of the plugin and the central run with 
 
 The central run's fixes from the same audit are recorded in `Management/site-audit/pre-december-sweep-2026-11.md` (that code is not in this repo).
 
+## 2026-11-10: 1.0.11 released and installed on the 35 sites
+
+Pre-release, Higgs staging (19 checks ran, export dated the run, `errors` empty), promoted, then installed over SSH on all 35 production sites, three at a time; all report 1.0.11 active. The fleet collect that followed returned 35 exports from 1.0.11 with no run errors, and the month-one dry run is unchanged at 4 tasks on 4 sites.
+
+Two observations, neither a plugin fault: one SSH session (swedishprogram.org) hung after the run had finished on the site and cost the collect its full 900-second timeout; and `currency.plugins` reports cannot-run on most sites for some hours after any fleet install, because reinstalling a plugin clears the `update_plugins` transient the check reads.
