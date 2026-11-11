@@ -25,6 +25,13 @@ class Omens_Audit_Check_Staging_Links extends Omens_Audit_Check_Base {
 	const FILE_BYTES = 600000;
 	const LOCATIONS  = 12;
 
+	/**
+	 * Rows that could place a slider on a page; see placement_rows().
+	 *
+	 * @var array|null
+	 */
+	private $placement_rows = null;
+
 	public function id() {
 		return 'seo.staging-links';
 	}
@@ -62,7 +69,28 @@ class Omens_Audit_Check_Staging_Links extends Omens_Audit_Check_Base {
 			'omens_audit/staging_link_suffixes',
 			array( 'local', 'test', 'localhost', 'mystagingwebsite\.com', 'omens\.site', 'wpengine\.com', 'wpenginepowered\.com', 'flywheelsites\.com', 'kinsta\.cloud', 'pantheonsite\.io', 'myftpupload\.com', 'wpcomstaging\.com', 'instawp\.xyz', 'instawp\.co', 'ngrok\.io', 'ngrok-free\.app' )
 		);
-		return '~(?:https?:|https?%3A)?(?:\\\\?/|%2F){2}((?:localhost|127\.0\.0\.1|0\.0\.0\.0)(?![.a-z0-9-])|[a-z0-9][a-z0-9.-]*\.(?:' . implode( '|', $suffixes ) . ')(?![a-z0-9-]))(?::\d+)?~i';
+		return '~(?:https?:|https?%3A)?(?:\\\\?/|%2F){2}((?:localhost|127\.0\.0\.1|0\.0\.0\.0)(?![.a-z0-9-])|[a-z0-9][a-z0-9.-]*\.(?:' . implode( '|', $suffixes ) . ')(?![a-z0-9-]|\.[a-z0-9]))(?::\d+)?~i';
+	}
+
+	/**
+	 * The substrings the SQL prefilter looks for, built from the same suffix list as the
+	 * pattern, so a suffix added by filter is searched for in the database as well.
+	 *
+	 * @return string[]
+	 */
+	public static function prefilter_terms() {
+		$suffixes = (array) apply_filters(
+			'omens_audit/staging_link_suffixes',
+			array( 'local', 'test', 'localhost', 'mystagingwebsite\.com', 'omens\.site', 'wpengine\.com', 'wpenginepowered\.com', 'flywheelsites\.com', 'kinsta\.cloud', 'pantheonsite\.io', 'myftpupload\.com', 'wpcomstaging\.com', 'instawp\.xyz', 'instawp\.co', 'ngrok\.io', 'ngrok-free\.app' )
+		);
+		$terms    = array( 'localhost', '127.0.0.1', '0.0.0.0' );
+		foreach ( $suffixes as $suffix ) {
+			$plain = str_replace( '\\', '', (string) $suffix );
+			if ( preg_match( '/^[a-z0-9.-]+$/i', $plain ) ) {
+				$terms[] = '.' . $plain;
+			}
+		}
+		return array_values( array_unique( $terms ) );
 	}
 
 	/**
@@ -125,7 +153,8 @@ class Omens_Audit_Check_Staging_Links extends Omens_Audit_Check_Base {
 
 	public function run( Omens_Audit_Context $ctx ) {
 		global $wpdb;
-		$own  = array_filter(
+		$this->placement_rows = null;
+		$own                  = array_filter(
 			array_unique(
 				array(
 					strtolower( (string) wp_parse_url( home_url(), PHP_URL_HOST ) ),
@@ -134,8 +163,8 @@ class Omens_Audit_Check_Staging_Links extends Omens_Audit_Check_Base {
 				)
 			)
 		);
-		$re   = self::pattern();
-		$hits = array(
+		$re                   = self::pattern();
+		$hits                 = array(
 			'content' => array(),
 			'forms'   => array(),
 			'theme'   => array(),
@@ -167,7 +196,7 @@ class Omens_Audit_Check_Staging_Links extends Omens_Audit_Check_Base {
 
 		$like = function ( $col ) use ( $wpdb ) {
 			$parts = array();
-			foreach ( array( 'localhost', '127.0.0.1', '0.0.0.0', '.local', '.test', 'mystagingwebsite', 'omens.site', 'wpengine', 'flywheelsites', 'kinsta.cloud', 'pantheonsite', 'myftpupload', 'wpcomstaging', 'instawp', 'ngrok' ) as $l ) {
+			foreach ( self::prefilter_terms() as $l ) {
 				// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- $col is one of five fixed column names in this file.
 				$parts[] = $wpdb->prepare( "{$col} LIKE %s", '%' . $wpdb->esc_like( $l ) . '%' );
 			}
@@ -180,7 +209,7 @@ class Omens_Audit_Check_Staging_Links extends Omens_Audit_Check_Base {
 
 		// Posts: page content, builder shortcodes, reusable layouts, menu items.
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared -- table names from $wpdb, every LIKE built with prepare(), LIMIT a class constant.
-		$posts = (array) $wpdb->get_results( "SELECT ID, post_type, post_status, post_title, post_content, post_excerpt FROM {$wpdb->posts} WHERE post_status IN ('publish','private','future') AND " . $like( 'post_content' ) . ' LIMIT ' . self::ROW_LIMIT );
+		$posts = (array) $wpdb->get_results( "SELECT ID, post_type, post_status, post_title, post_content, post_excerpt FROM {$wpdb->posts} WHERE post_status IN ('publish','private','future') AND post_type <> 'revision' AND " . $like( 'post_content' ) . ' ORDER BY ID LIMIT ' . self::ROW_LIMIT );
 		foreach ( $posts as $p ) {
 			if ( in_array( $p->post_type, $skip_types, true ) || ! in_array( $p->post_status, $live, true ) ) {
 				continue;
@@ -191,7 +220,7 @@ class Omens_Audit_Check_Staging_Links extends Omens_Audit_Check_Base {
 
 		// Post meta: Elementor and other builder data, ACF fields, menu item URLs.
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared -- table names from $wpdb, every LIKE built with prepare(), LIMIT a class constant.
-		$meta = (array) $wpdb->get_results( "SELECT m.post_id, m.meta_key, m.meta_value, p.post_type, p.post_status, p.post_title FROM {$wpdb->postmeta} m JOIN {$wpdb->posts} p ON p.ID = m.post_id WHERE p.post_status IN ('publish','private','future','inherit') AND " . $like( 'm.meta_value' ) . ' LIMIT ' . self::ROW_LIMIT );
+		$meta = (array) $wpdb->get_results( "SELECT m.post_id, m.meta_key, m.meta_value, p.post_type, p.post_status, p.post_title FROM {$wpdb->postmeta} m JOIN {$wpdb->posts} p ON p.ID = m.post_id WHERE p.post_status IN ('publish','private','future','inherit') AND p.post_type <> 'revision' AND m.meta_key NOT IN ('_elementor_css','_elementor_element_cache','_wp_attachment_metadata','_wp_attachment_backup_sizes','_wp_attached_file','_source_url','_wp_old_slug','_edit_lock','_edit_last') AND m.meta_key NOT LIKE '\\_oembed%' AND " . $like( 'm.meta_value' ) . ' ORDER BY m.meta_id LIMIT ' . self::ROW_LIMIT );
 		foreach ( $meta as $r ) {
 			if ( in_array( $r->post_type, $skip_types, true ) || ! in_array( $r->post_status, array_merge( $live, array( 'inherit' ) ), true ) || self::ignored_meta( $r->meta_key ) ) {
 				continue;
@@ -293,7 +322,7 @@ class Omens_Audit_Check_Staging_Links extends Omens_Audit_Check_Base {
 					'subject'  => 'sliders-unused',
 					'severity' => 'info',
 					'title'    => sprintf( '%d slider%s on no page still point%s at a staging or local host', count( $unused ), 1 === count( $unused ) ? '' : 's', 1 === count( $unused ) ? 's' : '' ),
-					'summary'  => 'Nobody sees these, so nothing is broken; they are cleanup.',
+					'summary'  => 'The audit found no published page that uses these, so they are cleanup. A slider placed by a widget or straight from a theme file would not be found this way: if one of these is on the site, treat it as a real fix.',
 					'detail'   => omens_audit_trim( implode( ' | ', $unused ), 1200 ),
 					'fix'      => array(
 						'route'      => 'content',
@@ -359,7 +388,7 @@ class Omens_Audit_Check_Staging_Links extends Omens_Audit_Check_Base {
 		$names = array();
 		foreach ( array_unique( $tables ) as $t ) {
 			// Backups, revisions and the style tables hold no slide a visitor sees.
-			if ( ! preg_match( '/^[A-Za-z0-9_]+$/', (string) $t ) || preg_match( '/(_bkp|_backup|_revisions?|_css|_layer_animations|_navigations)\d*$/i', $t ) ) {
+			if ( ! preg_match( '/^[A-Za-z0-9_]+$/', (string) $t ) || preg_match( '/(_bkp|_backup|_revisions?|_drafts?|_css|_layer_animations|_navigations)\d*$/i', $t ) ) {
 				continue;
 			}
 			$layer = false !== stripos( $t, 'layerslider' );
@@ -387,7 +416,7 @@ class Omens_Audit_Check_Staging_Links extends Omens_Audit_Check_Base {
 			}
 			$where = array();
 			foreach ( $text as $col ) {
-				foreach ( array( 'localhost', '127.0.0.1', '.local', '.test', 'mystagingwebsite', 'omens.site', 'wpengine', 'flywheelsites', 'kinsta.cloud', 'pantheonsite', 'myftpupload', 'wpcomstaging', 'instawp', 'ngrok' ) as $l ) {
+				foreach ( self::prefilter_terms() as $l ) {
 					$where[] = $wpdb->prepare( "`{$col}` LIKE %s", '%' . $wpdb->esc_like( $l ) . '%' ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- column name from SHOW COLUMNS, matched [A-Za-z0-9_]+.
 				}
 			}
@@ -464,15 +493,15 @@ class Omens_Audit_Check_Staging_Links extends Omens_Audit_Check_Base {
 	 * @return array[] { post_id, label }
 	 */
 	private function slider_placements( array $sl ) {
-		global $wpdb;
 		$alias = $sl['alias'];
 		if ( 'LayerSlider' === $sl['plugin'] ) {
-			$needles = array( 'layerslider id="' . $sl['id'] . '"', "layerslider id='" . $sl['id'] . "'", 'layerslider id=\\"' . $sl['id'] . '\\"' );
+			$needles = array( 'layerslider id="' . $sl['id'] . '"', "layerslider id='" . $sl['id'] . "'", 'layerslider id=\\"' . $sl['id'] . '\\"', 'layerslider_vc id="' . $sl['id'] . '"' );
 			if ( '' !== $alias ) {
 				$needles[] = 'layerslider id="' . $alias . '"';
+				$needles[] = "layerslider id='" . $alias . "'";
 			}
 		} else {
-			$needles = '' === $alias ? array() : array( 'rev_slider alias="' . $alias . '"', 'rev_slider_vc alias="' . $alias . '"', 'alias=\\"' . $alias . '\\"', 'alias="' . $alias . '"', '"alias":"' . $alias . '"', '[rev_slider ' . $alias . ']', 'alias=&quot;' . $alias . '&quot;', 'slidertitle":"' . $alias . '"' );
+			$needles = '' === $alias ? array() : array( 'rev_slider alias="' . $alias . '"', "rev_slider alias='" . $alias . "'", 'rev_slider_vc alias="' . $alias . '"', 'alias=\\"' . $alias . '\\"', 'alias="' . $alias . '"', "alias='" . $alias . "'", '"alias":"' . $alias . '"', '[rev_slider ' . $alias . ']', 'alias=&quot;' . $alias . '&quot;', 'slidertitle":"' . $alias . '"' );
 		}
 		$skip = self::ignored_post_types();
 		$out  = array();
@@ -484,40 +513,90 @@ class Omens_Audit_Check_Staging_Links extends Omens_Audit_Check_Base {
 				);
 			}
 		};
-		foreach ( $needles as $needle ) {
-			$like = '%' . $wpdb->esc_like( $needle ) . '%';
-			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-			foreach ( (array) $wpdb->get_results( $wpdb->prepare( "SELECT ID, post_type, post_status, post_title, post_content FROM {$wpdb->posts} WHERE post_status = 'publish' AND post_content LIKE %s LIMIT 20", $like ) ) as $p ) {
-				if ( 'publish' === $p->post_status && self::mentions( (string) $p->post_content, $needle ) ) {
+		$rows = $this->placement_rows();
+		foreach ( $rows['posts'] as $p ) {
+			foreach ( $needles as $needle ) {
+				if ( self::mentions( (string) $p->post_content, $needle ) ) {
 					$add( $p->ID, $p->post_type, $p->post_title );
+					break;
 				}
 			}
-			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-			foreach ( (array) $wpdb->get_results( $wpdb->prepare( "SELECT m.post_id, m.meta_key, m.meta_value, p.post_type, p.post_status, p.post_title FROM {$wpdb->postmeta} m JOIN {$wpdb->posts} p ON p.ID = m.post_id WHERE p.post_status = 'publish' AND m.meta_value LIKE %s LIMIT 20", $like ) ) as $r ) {
-				if ( 'publish' === $r->post_status && ! self::ignored_meta( $r->meta_key ) && self::mentions( (string) $r->meta_value, $needle ) ) {
+		}
+		foreach ( $rows['meta'] as $r ) {
+			if ( self::ignored_meta( $r->meta_key ) ) {
+				continue;
+			}
+			// Themes that keep only the alias in a page's slider setting (Qode, ThemeREX page options).
+			$by_alias = '' !== $alias && 'Slider Revolution' === $sl['plugin'] && false !== stripos( (string) $r->meta_key, 'slider' ) && (string) $r->meta_value === $alias;
+			if ( $by_alias ) {
+				$add( $r->post_id, $r->post_type, $r->post_title );
+				continue;
+			}
+			foreach ( $needles as $needle ) {
+				if ( self::mentions( (string) $r->meta_value, $needle ) ) {
 					$add( $r->post_id, $r->post_type, $r->post_title );
+					break;
 				}
 			}
-			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-			foreach ( (array) $wpdb->get_results( $wpdb->prepare( "SELECT option_name, option_value FROM {$wpdb->options} WHERE option_value LIKE %s LIMIT 20", $like ) ) as $o ) {
-				if ( ! self::ignored_option( $o->option_name ) && ! preg_match( '/^(revslider|layerslider|rs-|ls-)/i', $o->option_name ) && self::mentions( (string) $o->option_value, $needle ) && ! isset( $out[ 'option:' . $o->option_name ] ) ) {
+		}
+		foreach ( $rows['options'] as $o ) {
+			if ( self::ignored_option( $o->option_name ) || preg_match( '/^(revslider|layerslider|rs-|ls-)/i', $o->option_name ) || isset( $out[ 'option:' . $o->option_name ] ) ) {
+				continue;
+			}
+			foreach ( $needles as $needle ) {
+				if ( self::mentions( (string) $o->option_value, $needle ) ) {
 					$out[ 'option:' . $o->option_name ] = array(
 						'post_id' => 0,
 						'label'   => 'the ' . $o->option_name . ' option',
 					);
-				}
-			}
-		}
-		// Themes that keep only the alias in a page's slider setting (Qode, ThemeREX page options).
-		if ( '' !== $alias && 'Slider Revolution' === $sl['plugin'] ) {
-			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-			foreach ( (array) $wpdb->get_results( $wpdb->prepare( "SELECT m.post_id, m.meta_key, m.meta_value, p.post_type, p.post_status, p.post_title FROM {$wpdb->postmeta} m JOIN {$wpdb->posts} p ON p.ID = m.post_id WHERE p.post_status = 'publish' AND m.meta_key LIKE %s AND m.meta_value = %s LIMIT 20", '%slider%', $alias ) ) as $r ) {
-				if ( 'publish' === $r->post_status && false !== stripos( (string) $r->meta_key, 'slider' ) && (string) $r->meta_value === $alias ) {
-					$add( $r->post_id, $r->post_type, $r->post_title );
+					break;
 				}
 			}
 		}
 		return array_values( $out );
+	}
+
+	/**
+	 * The published rows that could place a slider, fetched once per run: content and
+	 * builder data that mention a slider shortcode, page settings whose key names a slider,
+	 * and options that hold a shortcode. Every slider is then matched in PHP. The first
+	 * version ran up to 25 unindexed scans per slider, which on a million-row meta table
+	 * (bar-md.com) would have run past the collector's timeout with ten demo sliders.
+	 *
+	 * @return array{posts: object[], meta: object[], options: object[]}
+	 */
+	private function placement_rows() {
+		if ( null !== $this->placement_rows ) {
+			return $this->placement_rows;
+		}
+		global $wpdb;
+		$terms   = array( 'rev_slider', 'revslider', 'layerslider', 'slider_revolution' );
+		$any     = function ( $col ) use ( $wpdb, $terms ) {
+			$parts = array();
+			foreach ( $terms as $t ) {
+				// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- $col is one of three fixed column names in this method.
+				$parts[] = $wpdb->prepare( "{$col} LIKE %s", '%' . $wpdb->esc_like( $t ) . '%' );
+			}
+			return '(' . implode( ' OR ', $parts ) . ')';
+		};
+		$publish = function ( array $rows ) {
+			return array_values(
+				array_filter(
+					$rows,
+					function ( $r ) {
+						return 'publish' === ( $r->post_status ?? '' );
+					}
+				)
+			);
+		};
+		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared -- table names from $wpdb, every LIKE built with prepare(), limits are literals.
+		$this->placement_rows = array(
+			'posts'   => $publish( (array) $wpdb->get_results( "SELECT ID, post_type, post_status, post_title, post_content FROM {$wpdb->posts} WHERE post_status = 'publish' AND post_type <> 'revision' AND " . $any( 'post_content' ) . ' ORDER BY ID LIMIT 500' ) ),
+			'meta'    => $publish( (array) $wpdb->get_results( "SELECT m.post_id, m.meta_key, m.meta_value, p.post_type, p.post_status, p.post_title FROM {$wpdb->postmeta} m JOIN {$wpdb->posts} p ON p.ID = m.post_id WHERE p.post_status = 'publish' AND p.post_type <> 'revision' AND ( " . $any( 'm.meta_value' ) . " OR ( m.meta_key LIKE '%slider%' AND m.meta_value <> '' AND CHAR_LENGTH( m.meta_value ) < 200 ) ) ORDER BY m.meta_id LIMIT 3000" ) ),
+			'options' => (array) $wpdb->get_results( "SELECT option_name, option_value FROM {$wpdb->options} WHERE option_name NOT LIKE '\\_transient%' AND option_name NOT LIKE '\\_site\\_transient%' AND " . $any( 'option_value' ) . ' ORDER BY option_id LIMIT 300' ),
+		);
+		// phpcs:enable
+		return $this->placement_rows;
 	}
 
 	/**

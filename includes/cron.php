@@ -29,7 +29,11 @@ add_filter(
 add_action(
 	OMENS_AUDIT_CRON_HOOK,
 	function () {
-		omens_audit_run();
+		try {
+			omens_audit_run();
+		} catch ( \Throwable $e ) {
+			return; // A read-only sensor must not turn a cron tick into a fatal error.
+		}
 	}
 );
 

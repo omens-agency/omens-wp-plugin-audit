@@ -57,6 +57,10 @@ class Omens_Audit_Check_Link_Empty extends Omens_Audit_Check_Base {
 					continue;
 				}
 				$href = 'a' === $tag ? $el->getAttribute( 'href' ) : '';
+				// WordPress echoes the request's query string into links it builds from the current
+				// URL (pagination arrows, share links), and the audit fetches with ?omens-audit=<time>.
+				// Left in, the same empty link got a new fingerprint, and a new task, every run.
+				$href = (string) preg_replace( '/(?:[?&]|&amp;|&#0?38;|%3F|%26)omens-audit(?:=|%3D)\d+/i', '', $href );
 				$key  = $tag . '|' . ( '' !== $href ? $href : omens_audit_selector( $el ) );
 				if ( isset( $seen[ $key ] ) ) {
 					continue;

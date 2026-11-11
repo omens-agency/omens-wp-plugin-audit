@@ -95,13 +95,13 @@ class Omens_Audit_Context {
 	 * @param array $opts { dry_run }.
 	 */
 	public function __construct( array $opts = array() ) {
-		$this->host           = omens_audit_host();
-		$this->environment    = wp_get_environment_type();
+		$this->host                  = omens_audit_host();
+		$this->environment           = wp_get_environment_type();
 		$this->effective_environment = omens_audit_effective_environment( $this->host, $this->environment );
-		$build                = omens_audit_build_type();
-		$this->build_type     = $build['type'];
-		$this->build_evidence = $build['evidence'];
-		$this->dry_run        = ! empty( $opts['dry_run'] );
+		$build                       = omens_audit_build_type();
+		$this->build_type            = $build['type'];
+		$this->build_evidence        = $build['evidence'];
+		$this->dry_run               = ! empty( $opts['dry_run'] );
 	}
 
 	/**
@@ -169,8 +169,35 @@ class Omens_Audit_Context {
 		// query string is what actually gets a fresh render.
 		$busted = add_query_arg( 'omens-audit', (string) time(), $url );
 
-		$start                = microtime( true );
-		$response             = wp_remote_get( $busted, $args );
+		// Redirects are followed here, one hop at a time, and only while they stay on this site.
+		// Left to the HTTP layer, a privacy page that 301s to a hosted policy sent the audit off
+		// to someone else's server and filed findings about their markup.
+		$hops                = (int) $args['redirection'];
+		$args['redirection'] = 0;
+		$target              = $busted;
+		$start               = microtime( true );
+		while ( true ) {
+			$response = wp_remote_get( $target, $args );
+			if ( is_wp_error( $response ) ) {
+				break;
+			}
+			$code     = (int) wp_remote_retrieve_response_code( $response );
+			$location = (string) wp_remote_retrieve_header( $response, 'location' );
+			if ( $code < 300 || $code >= 400 || '' === $location ) {
+				break;
+			}
+			$next = class_exists( 'WP_Http' ) ? WP_Http::make_absolute_url( $location, $target ) : $location;
+			if ( ! $this->is_own_url( $next ) ) {
+				$this->fetch_seconds += microtime( true ) - $start;
+				$this->failed[ $url ] = 'redirects off this site (to ' . (string) wp_parse_url( $next, PHP_URL_HOST ) . '); not followed';
+				return null;
+			}
+			if ( $hops-- <= 0 ) {
+				break; // Reported below as the 3xx it is.
+			}
+			// Keep the cache-buster: a redirect target fetched without it is the edge's cached copy.
+			$target = false === strpos( $next, 'omens-audit=' ) ? add_query_arg( 'omens-audit', (string) time(), $next ) : $next;
+		}
 		$this->fetch_seconds += microtime( true ) - $start;
 
 		if ( is_wp_error( $response ) ) {

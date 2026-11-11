@@ -57,6 +57,14 @@ function omens_audit_routes() {
  * @return array
  */
 function omens_audit_finding( array $args, $host = '' ) {
+	// Text lifted from a site (titles, markup, option values) can hold a broken byte sequence,
+	// and wpdb refuses to store an option that does: the run then fails to save.
+	array_walk_recursive(
+		$args,
+		function ( &$v ) {
+			$v = omens_audit_clean_utf8( $v );
+		}
+	);
 	$host = '' !== $host ? $host : omens_audit_host();
 	$fix  = wp_parse_args(
 		isset( $args['fix'] ) && is_array( $args['fix'] ) ? $args['fix'] : array(),
@@ -110,11 +118,46 @@ function omens_audit_finding( array $args, $host = '' ) {
  * @return string
  */
 function omens_audit_trim( $text, $length ) {
-	$text = trim( preg_replace( '/\s+/', ' ', (string) $text ) );
+	$text = trim( (string) preg_replace( '/\s+/', ' ', (string) $text ) );
 	if ( strlen( $text ) <= $length ) {
 		return $text;
 	}
-	return substr( $text, 0, $length - 1 ) . '…';
+	// Cut on a character boundary. A cut inside a multibyte character (a curly quote, an en
+	// dash, an accented letter) leaves invalid UTF-8, which json_encode and wpdb both refuse.
+	$room = max( 0, (int) $length - 3 ); // The ellipsis is three bytes.
+	if ( function_exists( 'mb_strcut' ) ) {
+		$cut = mb_strcut( $text, 0, $room, 'UTF-8' );
+	} else {
+		$cut = (string) preg_replace( '/[\xC0-\xFF][\x80-\xBF]*$/', '', substr( $text, 0, $room ) );
+	}
+	return $cut . '…';
+}
+
+/**
+ * A string with any invalid UTF-8 removed; other values unchanged.
+ *
+ * @param mixed $value Value.
+ * @return mixed
+ */
+function omens_audit_clean_utf8( $value ) {
+	if ( ! is_string( $value ) || '' === $value || ! preg_match( '/[\x80-\xFF]/', $value ) ) {
+		return $value;
+	}
+	if ( function_exists( 'mb_check_encoding' ) && mb_check_encoding( $value, 'UTF-8' ) ) {
+		return $value;
+	}
+	if ( function_exists( 'mb_convert_encoding' ) ) {
+		$prev = function_exists( 'mb_substitute_character' ) ? mb_substitute_character() : null;
+		if ( null !== $prev ) {
+			mb_substitute_character( 'none' );
+		}
+		$clean = mb_convert_encoding( $value, 'UTF-8', 'UTF-8' );
+		if ( null !== $prev ) {
+			mb_substitute_character( $prev );
+		}
+		return (string) $clean;
+	}
+	return function_exists( 'wp_check_invalid_utf8' ) ? wp_check_invalid_utf8( $value, true ) : (string) preg_replace( '/[\x80-\xFF]/', '', $value );
 }
 
 /**

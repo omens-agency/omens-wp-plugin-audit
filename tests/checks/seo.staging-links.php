@@ -109,6 +109,45 @@ return array(
 			$t->assert( false !== strpos( $u['fix']['where'], 'Full width demo slider" (in the trash)' ) && false !== strpos( $u['fix']['where'], 'LayerSlider slider "Identity"' ), 'names and the trash note: ' . $u['fix']['where'] );
 		},
 	),
+	// 1.0.11: a suffix must end the host. These are ordinary domains with "test", "local" or
+	// "wpengine.com" in the middle, and the fix step is a site-wide search-replace.
+	'clean_ordinary_domains_with_a_staging_word_inside' => array(
+		'setup'  => function ( $t ) use ( $prod, $posts ) {
+			$prod( $t );
+			$posts( $t, array( array( 'ID' => 3, 'post_content' => '<a href="https://www.test.com/">a</a> <a href="https://www.local.com/x">b</a> <script src="https://cdn.local.example.net/a.js"></script> <a href="https://shop.wpengine.com.au/">c</a> <a href="https://localhost.example.org/">d</a>' ) ) );
+		},
+		'expect' => array( 'count' => 0 ),
+	),
+	// 1.0.11: a title cut inside a multibyte character made invalid UTF-8, which the options
+	// table refuses, so the whole run failed to save while reporting success.
+	'fires_multibyte_title_stays_valid_utf8' => array(
+		'setup'  => function ( $t ) use ( $prod, $posts ) {
+			$prod( $t );
+			foreach ( range( 44, 52 ) as $pad ) {
+				$posts( $t, array( array( 'ID' => 300 + $pad, 'post_title' => str_repeat( 'a', $pad ) . '–’é “Smith & Jones” – San Diego’s', 'post_content' => 'https://example.mystagingwebsite.com/' . $pad ) ) );
+			}
+		},
+		'expect' => function ( $findings, $run, $t ) {
+			$t->assert( 1 === count( $findings ), 'one content finding' );
+			$json = json_encode( $findings[0] );
+			$t->assert( false !== $json, 'the finding encodes as JSON: ' . json_last_error_msg() );
+			array_walk_recursive( $findings[0], function ( $v ) use ( $t ) { if ( is_string( $v ) ) { $t->assert( mb_check_encoding( $v, 'UTF-8' ), 'valid UTF-8 in every string: ' . bin2hex( substr( $v, -6 ) ) ); } } );
+			$t->assert( strlen( omens_audit_trim( str_repeat( 'é', 100 ), 50 ) ) <= 50 && mb_check_encoding( omens_audit_trim( str_repeat( 'é', 100 ), 50 ), 'UTF-8' ), 'trim cuts on a character boundary and fits the length' );
+			$t->assert( 'abc' === omens_audit_clean_utf8( "a\xC3b\xE2\x80c" ), 'broken sequences are removed, the rest kept' );
+		},
+	),
+	// 1.0.11: single-quoted shortcode attributes place a slider too.
+	'fires_slider_placed_by_single_quoted_shortcode' => array(
+		'setup'  => function ( $t ) use ( $prod, $posts ) {
+			$prod( $t );
+			$t->state()['db_tables'] = array_merge( $t->state()['db_tables'], array( 'wp_revslider_sliders', 'wp_revslider_slides', 'wp_layerslider_drafts' ) );
+			$t->state()['db_rows']['wp_revslider_sliders'][] = array( 'id' => 1, 'title' => 'Hero', 'alias' => 'hero', 'params' => '{}' );
+			$t->state()['db_rows']['wp_revslider_slides'][]  = array( 'id' => 7, 'slider_id' => 1, 'params' => '{"bg":"https:\\/\\/example.mystagingwebsite.com\\/a.jpg"}', 'layers' => '{}' );
+			$t->state()['db_rows']['wp_layerslider_drafts'][] = array( 'id' => 9, 'name' => 'Draft', 'slug' => 'draft', 'data' => 'https://exampledemo.wpengine.com/a.jpg' );
+			$posts( $t, array( array( 'ID' => 2, 'post_content' => "[rev_slider alias='hero'][/rev_slider]" ) ) );
+		},
+		'expect' => array( 'count' => 1, 'subject' => 'content', 'where_contains' => 'Slider Revolution slider "Hero" (on page "Home" (ID 2))' ),
+	),
 	'clean_slider_on_own_host' => array(
 		'setup'  => function ( $t ) use ( $prod ) {
 			$prod( $t );

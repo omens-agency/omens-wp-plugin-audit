@@ -49,12 +49,12 @@ class Omens_Audit_CLI {
 	 * @param array $assoc_args Flags.
 	 */
 	public function run( $args, $assoc_args ) {
-		$opts   = array(
+		$opts    = array(
 			'family'  => (string) ( $assoc_args['family'] ?? '' ),
 			'checks'  => isset( $assoc_args['check'] ) ? array_filter( array_map( 'trim', explode( ',', (string) $assoc_args['check'] ) ) ) : array(),
 			'dry_run' => ! empty( $assoc_args['dry-run'] ),
 		);
-		$format = (string) ( $assoc_args['format'] ?? 'table' );
+		$format  = (string) ( $assoc_args['format'] ?? 'table' );
 		$partial = '' !== $opts['family'] || ! empty( $opts['checks'] );
 		if ( $partial && ! $opts['dry_run'] && empty( $assoc_args['store'] ) ) {
 			$opts['dry_run'] = true;
@@ -80,6 +80,13 @@ class Omens_Audit_CLI {
 		};
 
 		$run = omens_audit_run( $opts, $progress );
+
+		if ( ! $run['dry_run'] && empty( $run['stored'] ) ) {
+			WP_CLI::error( 'The audit ran but its result could not be saved, so `export` would still return the previous run. ' . ( $run['errors'] ? implode( '; ', $run['errors'] ) : 'The options table refused the write.' ) );
+		}
+		foreach ( $run['errors'] as $err ) {
+			WP_CLI::warning( $err );
+		}
 
 		if ( 'json' === $format ) {
 			WP_CLI::line( wp_json_encode( $run ) );

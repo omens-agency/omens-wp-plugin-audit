@@ -32,13 +32,27 @@ if ( ! defined( 'ABSPATH' ) ) {
 add_action(
 	'plugins_loaded',
 	function () {
-		if ( ! class_exists( '\YahnisElsts\PluginUpdateChecker\v5\PucFactory' ) ) {
-			$loader = OMENS_AUDIT_DIR . 'vendor/plugin-update-checker/plugin-update-checker.php';
-			if ( ! file_exists( $loader ) ) {
-				return;
-			}
-			require_once $loader;
+		try {
+			omens_audit_wire_updater();
+		} catch ( \Throwable $e ) {
+			return; // No updates is recoverable. A fatal error on every request is not.
 		}
+	}
+);
+
+/**
+ * Build the update checker. Called inside a try: the Plugin Update Checker class that
+ * answers may be another plugin's copy (Pressable Cache Management ships one), and an
+ * older copy must cost this plugin its updates at worst, never the site its pages.
+ */
+function omens_audit_wire_updater() {
+	if ( ! class_exists( '\YahnisElsts\PluginUpdateChecker\v5\PucFactory' ) ) {
+		$loader = OMENS_AUDIT_DIR . 'vendor/plugin-update-checker/plugin-update-checker.php';
+		if ( ! file_exists( $loader ) ) {
+			return;
+		}
+		require_once $loader;
+	}
 		$checker = \YahnisElsts\PluginUpdateChecker\v5\PucFactory::buildUpdateChecker(
 			'https://github.com/omens-agency/omens-wp-plugin-audit/',
 			OMENS_AUDIT_FILE,
@@ -49,11 +63,16 @@ add_action(
 		// commit, so installing it would deactivate the plugin. REQUIRE means a
 		// release with no matching zip is skipped rather than falling back.
 		$api = $checker->getVcsApi();
+	if ( defined( get_class( $api ) . '::REQUIRE_RELEASE_ASSETS' ) ) {
 		$api->enableReleaseAssets( '/^omens-wp-plugin-audit\.zip$/', $api::REQUIRE_RELEASE_ASSETS );
+	} else {
+		// Plugin Update Checker 5.0 (another plugin's copy) has no REQUIRE mode.
+		$api->enableReleaseAssets( '/^omens-wp-plugin-audit\.zip$/' );
+	}
 		$checker->setBranch( 'main' );
-		if ( defined( 'OMENS_PLUGIN_UPDATE_TOKEN' ) && OMENS_PLUGIN_UPDATE_TOKEN ) {
-			$checker->setAuthentication( OMENS_PLUGIN_UPDATE_TOKEN );
-		}
+	if ( defined( 'OMENS_PLUGIN_UPDATE_TOKEN' ) && OMENS_PLUGIN_UPDATE_TOKEN ) {
+		$checker->setAuthentication( OMENS_PLUGIN_UPDATE_TOKEN );
+	}
 		// The icon WordPress shows on the Plugins and Updates screens. Served from the
 		// public repo, so no asset leaves with the zip and no token is needed.
 		$checker->addResultFilter(
@@ -71,8 +90,7 @@ add_action(
 		);
 		// For a manual probe: wp eval '$GLOBALS["omens_audit_updater"]->checkForUpdates();'
 		$GLOBALS['omens_audit_updater'] = $checker;
-	}
-);
+}
 
 /**
  * GitHub's "Download ZIP" unpacks to omens-wp-plugin-audit-main. WordPress

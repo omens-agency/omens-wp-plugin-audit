@@ -18,10 +18,30 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @return bool
  */
 function omens_audit_store_run( array $run ) {
-	if ( false === get_option( OMENS_AUDIT_OPTION, false ) ) {
-		return add_option( OMENS_AUDIT_OPTION, $run, '', false );
+	$write = function ( array $run ) {
+		if ( false === get_option( OMENS_AUDIT_OPTION, false ) ) {
+			return (bool) add_option( OMENS_AUDIT_OPTION, $run, '', false );
+		}
+		return (bool) update_option( OMENS_AUDIT_OPTION, $run, false );
+	};
+	if ( $write( $run ) ) {
+		return true;
 	}
-	return update_option( OMENS_AUDIT_OPTION, $run, false );
+	// wpdb refuses a value its column cannot hold: invalid UTF-8, or a four-byte character
+	// (an emoji in a post title) on a utf8 rather than utf8mb4 options table. Make the text
+	// safe and try once more, so one odd title cannot cost the site its whole run.
+	array_walk_recursive(
+		$run,
+		function ( &$v ) {
+			if ( is_string( $v ) ) {
+				$v = omens_audit_clean_utf8( $v );
+				if ( function_exists( 'wp_encode_emoji' ) ) {
+					$v = wp_encode_emoji( $v );
+				}
+			}
+		}
+	);
+	return $write( $run );
 }
 
 /**

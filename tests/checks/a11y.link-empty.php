@@ -20,6 +20,21 @@ return array(
 		},
 		'expect' => array( 'count' => 1, 'severity' => 'serious', 'route' => 'code', 'confidence' => 'high', 'where_contains' => 'footer.php', 'criterion' => 'WCAG 2.2 2.4.4, 4.1.2' ),
 	),
+	// 1.0.11: WordPress echoes the request's query string into pagination and share links, and
+	// the audit fetches with ?omens-audit=<time>. The subject must be the same on every run.
+	'fires_cache_buster_not_in_subject' => array(
+		'setup'  => function ( $t ) use ( $about, $theme ) {
+			$theme( $t, array( 'footer.php' => '<footer>nothing</footer>' ) );
+			$id = $about( $t, '<p>Plain text</p>' );
+			$t->page( $t->doc( '<main><a class="next" href="https://example.test/about/page/2/?omens-audit=1731280000"><i class="arrow"></i></a><a class="share" href="https://share.example/?u=https%3A%2F%2Fexample.test%2Fabout%2F%3Fomens-audit%3D1731280000"><i></i></a><a class="prev" href="https://example.test/about/?paged=1&amp;omens-audit=1731280000"><i></i></a></main>' ), get_permalink( $id ) );
+		},
+		'expect' => function ( $findings, $run, $t ) {
+			$subjects = array_column( $findings, 'subject' );
+			sort( $subjects );
+			$t->assert( 3 === count( $findings ), 'three empty links, got ' . count( $findings ) );
+			$t->assert( array( 'a|https://example.test/about/?paged=1', 'a|https://example.test/about/page/2/', 'a|https://share.example/?u=https%3A%2F%2Fexample.test%2Fabout%2F' ) === $subjects, 'no timestamp in any subject: ' . json_encode( $subjects ) );
+		},
+	),
 	// Rule 2: href in post_content -> content, high.
 	'fires_href_in_post_content' => array(
 		'setup'  => function ( $t ) use ( $about, $theme ) {

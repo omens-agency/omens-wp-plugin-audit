@@ -140,6 +140,19 @@ function omens_audit_run( array $opts = array(), $progress = null ) {
 		);
 	}
 
+	// The pieces below run outside the per-check try: a third-party filter that throws in one
+	// of them (a post_link or pre_get_users callback under WP-CLI) used to lose every check's
+	// result. Each now fails on its own and is named in `errors`.
+	$errors = array();
+	$guard  = function ( $label, callable $piece, $fallback ) use ( &$errors ) {
+		try {
+			return $piece();
+		} catch ( \Throwable $e ) {
+			$errors[] = $label . ': ' . $e->getMessage();
+			return $fallback;
+		}
+	};
+
 	$run = array(
 		'schema'         => OMENS_AUDIT_SCHEMA,
 		'plugin_version' => OMENS_AUDIT_VERSION,
@@ -148,7 +161,7 @@ function omens_audit_run( array $opts = array(), $progress = null ) {
 		'environment'    => $ctx->environment,
 		'build_type'     => $ctx->build_type,
 		'build_evidence' => $ctx->build_evidence,
-		'theme'          => omens_audit_theme_info(),
+		'theme'          => $guard( 'theme', 'omens_audit_theme_info', array() ),
 		'wp_version'     => get_bloginfo( 'version' ),
 		'php_version'    => PHP_VERSION,
 		'locale'         => get_locale(),
@@ -157,24 +170,34 @@ function omens_audit_run( array $opts = array(), $progress = null ) {
 			'family' => (string) ( $opts['family'] ?? '' ),
 			'checks' => array_values( (array) ( $opts['checks'] ?? array() ) ),
 		),
-		'sample'         => $ctx->sample(),
-		'fetched'        => $ctx->fetched_urls(),
+		'sample'         => $guard( 'sample', array( $ctx, 'sample' ), array() ),
+		'fetched'        => $guard( 'fetched', array( $ctx, 'fetched_urls' ), array() ),
 		'checks'         => $ran,
 		'findings'       => $findings,
 		'counts'         => omens_audit_counts( $findings ),
 		'inventory'      => array(
-			'admins'     => omens_audit_inventory_admins(),
-			'mu_plugins' => omens_audit_inventory_mu_plugins(),
-			'plugins'    => omens_audit_inventory_plugins(),
-			'site_facts' => omens_audit_inventory_site_facts(),
+			'admins'     => $guard( 'inventory.admins', 'omens_audit_inventory_admins', array() ),
+			'mu_plugins' => $guard( 'inventory.mu_plugins', 'omens_audit_inventory_mu_plugins', array() ),
+			'plugins'    => $guard( 'inventory.plugins', 'omens_audit_inventory_plugins', array() ),
+			'site_facts' => $guard( 'inventory.site_facts', 'omens_audit_inventory_site_facts', array() ),
 		),
 		'fetch_seconds'  => round( $ctx->fetch_seconds, 2 ),
 		'duration_ms'    => (int) round( ( microtime( true ) - $started ) * 1000 ),
 	);
 
+	$run['errors'] = $errors;
+
+	// The caller is told whether the run was saved. `export` reads the saved run, so a run that
+	// could not be saved would otherwise hand the collector last month's result as this month's.
+	$stored = false;
 	if ( ! $ctx->dry_run ) {
-		omens_audit_store_run( $run );
+		try {
+			$stored = (bool) omens_audit_store_run( $run );
+		} catch ( \Throwable $e ) {
+			$run['errors'][] = 'store: ' . $e->getMessage();
+		}
 	}
+	$run['stored'] = $stored;
 	return $run;
 }
 

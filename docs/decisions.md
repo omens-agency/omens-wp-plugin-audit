@@ -286,3 +286,24 @@ Jake asked what "add the slider tables" meant, then "Yes, run the slider sweep f
 Tested with two new fixture cases (placed slider, unused and trashed sliders, a backup table, a style table, the Adminimize toolbar cache, a slider on the site's own host; 120 in all) and by running the class read-only on the six slider sites, where it matched the sweep exactly. The central run needs no change: slider locations are content locations, and the task gains the slider re-save step only when one is listed.
 
 **Released the same evening.** `tools/release.sh 1.0.10` (pre-release), installed on the Higgs staging site (19 checks, `seo.staging-links` skipped as staging, `version_compare` confirmed 1.0.10 above 1.0.9), `VERIFIED=1 tools/promote.sh 1.0.10`, then installed over SSH on all 35 enabled sites, which were still on 1.0.8 (1.0.9 had not auto-applied yet); all 35 home pages returned 200 afterwards.
+
+## 2026-11-10: dev team audit before the first live month (1.0.11)
+
+Jake asked the dev team for a full audit of the plugin and the central run with the first live filing three weeks out: "We don't know until it runs for real unless they say we need more testing." Three independent reviews ran in parallel (plugin code, central run lifecycle, December 2 readiness), none shown the others' conclusions, and each reproduced its findings before reporting.
+
+**Plugin, fixed in 1.0.11** (each has a fixture that fails on 1.0.10, or a run on a local site):
+
+- A run could fail to save and still report success (byte-wise trim producing invalid UTF-8, the store's result ignored). Reproduced: 14 of 152 cut positions on three sample titles gave invalid UTF-8. The simulated failed save on a Studio site now exits 1 with "could not be saved".
+- The cache-buster reached `a11y.link-empty` subjects. Reproduced with two fixtures differing only in the timestamp.
+- The updater's unguarded `plugins_loaded` callback: Pressable Cache Management ships Plugin Update Checker 5.6, so on those sites the audit's checker is built by that copy. A plugin shipping 5.0 would have thrown on every request.
+- The staging host pattern allowed a dot after the suffix. Reproduced: `www.test.com` read as host `www.test`.
+- A throw outside the per-check `try` lost the whole run. Reproduced with a throwing `omens_audit/sample_urls` filter; the run now completes and lists `sample: boom` in `errors`.
+- Slider placement cost up to 25 unindexed scans per slider. Not seen in production (no large-database site has slider hits), fixed because bar-md.com already spends 26 s on the base scan of a million-row meta table.
+- Redirects off the site were followed. Fixed by following same-host hops only.
+
+**Left for later, recorded here so they are not rediscovered:** positional selectors as subjects for buttons and href-less links (ThemeREX prints random ids, so such a finding would get a new fingerprint each run; none in the fleet today); `theme_plugin_slugs` picks up any `'slug' =>` in a TGMPA theme, harmless while the central run requires "no update channel" before treating a plugin as bundled; the content scan still loads up to 3,000 rows in one query; the fixtures' database stub ignores SQL, so query text is verified only by the smoke test and the fleet; the engine itself (store, cron, updater) has no fixture, only the manual runs above.
+
+**What the fixtures did and did not prove:** 124 pass (4 new, each failing on 1.0.10). The save-failure path, the throwing filter and the collect guard were exercised by hand on a Studio site, which is SQLite, so the real refusal by MySQL of an invalid string has still not been seen end to end.
+
+The central run's fixes from the same audit are recorded in `Management/site-audit/pre-december-sweep-2026-11.md` (that code is not in this repo).
+

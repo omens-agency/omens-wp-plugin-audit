@@ -96,6 +96,9 @@ function omens_audit_last_login( $user_id ) {
  */
 function omens_audit_inventory_mu_plugins() {
 	$list = array();
+	if ( ! function_exists( 'get_mu_plugins' ) ) {
+		require_once ABSPATH . 'wp-admin/includes/plugin.php';
+	}
 	foreach ( get_mu_plugins() as $file => $data ) {
 		$path   = trailingslashit( WPMU_PLUGIN_DIR ) . $file;
 		$list[] = array(
@@ -178,8 +181,8 @@ function omens_audit_inventory_site_facts() {
 		$updates = get_site_transient( 'update_themes' );
 		$dirs    = array();
 		foreach ( array_unique( array( get_template(), get_stylesheet() ) ) as $slug ) {
-			$theme  = wp_get_theme( $slug );
-			$dirs[] = $theme->get_stylesheet_directory();
+			$theme             = wp_get_theme( $slug );
+			$dirs[]            = $theme->get_stylesheet_directory();
 			$facts['themes'][] = array(
 				'slug'    => (string) $slug,
 				'name'    => (string) $theme->get( 'Name' ),
@@ -217,7 +220,10 @@ function omens_audit_role_level( $slug ) {
 	}
 	$role = get_role( $slug );
 	if ( ! $role ) {
-		return array( 'level' => null, 'unresolved' => true );
+		return array(
+			'level'      => null,
+			'unresolved' => true,
+		);
 	}
 	foreach ( array( 'manage_options', 'edit_plugins', 'edit_themes', 'install_plugins', 'activate_plugins', 'edit_users', 'promote_users', 'create_users' ) as $cap ) {
 		if ( $role->has_cap( $cap ) ) {
