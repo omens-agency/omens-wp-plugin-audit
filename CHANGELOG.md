@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- **Test fixtures no longer look like malware to a scanner.** On November 18, 2026 Jetpack Protect flagged `tests/checks/security.php-in-uploads.php` as high-severity malicious code on a staging site where the plugin had been installed by copying the source folder instead of the release zip (which leaves `tests/` out). The uploads fixtures now build their fake web shells at runtime through `omens_test_shell()` in `tests/bootstrap.php`, so the source holds none of the shell signatures while every fixture writes byte-for-byte the same files as before, and the two test stubs that were defined with `eval()` (the ACF functions and an Omens SEO double) are now plain conditional declarations. Test-only; nothing in the release zip changes.
+
 ## 1.0.11 (2026-11-10)
 
 Fixes from the November 10 dev team audit (three independent reviews before the first live filing month). No new checks.

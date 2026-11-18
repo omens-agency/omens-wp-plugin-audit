@@ -54,7 +54,7 @@ return array(
 	'clean_yoast_wins_over_omens_function' => array(
 		'setup'  => function ( $t ) {
 			$t->state()['home'] = 'https://example.com'; $t->state()['env'] = 'production'; $t->state()['options']['active_plugins'] = array( 'wordpress-seo/wp-seo.php' );
-			if ( ! function_exists( 'omens_seo_get_description' ) ) { eval( 'function omens_seo_get_description() { return ""; }' ); } // test double only
+			if ( ! function_exists( 'omens_seo_get_description' ) ) { function omens_seo_get_description() { return ''; } } // test double only
 			$t->page( $t->doc( '<main>home</main>' ) );
 			$t->page( '<sitemapindex><sitemap><loc>https://example.com/page-sitemap.xml</loc></sitemap></sitemapindex>', home_url( '/sitemap_index.xml' ) );
 			$t->page( '<urlset><url><loc>https://example.com/</loc></url></urlset>', home_url( '/page-sitemap.xml' ) );
