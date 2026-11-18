@@ -70,7 +70,7 @@ The fingerprint never includes the run date, so the same problem fingerprints th
 | security | `security.file-edit-enabled` `DISALLOW_FILE_EDIT` not true | serious | config |
 | security | `security.debug-display` errors would print to visitors on production | serious | config |
 | currency | `currency.plugins` updates pending, plus a list of plugins with no update channel | moderate | config |
-| currency | `currency.house-plugins` the Omens plugins expected for the build type are installed, active and current | moderate | config |
+| currency | `currency.house-plugins` the Omens plugins expected for the build type are installed, active and current, and none is installed from source (a copied, cloned or symlinked repo folder holding `.git`, `.gitattributes`, `.claude/`, `tools/`, `tests/` or `phpcs.xml.dist`; skipped on local sites) | moderate | config |
 | seo | `seo.indexing-blocked` production noindexed, or staging indexable (the host name is cross-checked against `WP_ENVIRONMENT_TYPE`) | critical | config |
 | seo | `seo.sitemap` sitemap unreachable, empty, or listing a noindexed sampled page | serious | config |
 | seo | `seo.description-missing` indexable entries with no stored description, per post type | moderate | content |

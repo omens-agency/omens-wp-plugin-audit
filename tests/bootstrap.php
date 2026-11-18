@@ -22,7 +22,9 @@ define( 'HOUR_IN_SECONDS', 3600 );
 define( 'MINUTE_IN_SECONDS', 60 );
 define( 'OBJECT', 'OBJECT' );
 define( 'ARRAY_A', 'ARRAY_A' );
-define( 'WP_CONTENT_DIR', sys_get_temp_dir() . '/omens-audit-wp-content' );
+// Inside the case's own temp folder (case.php: Omens_Audit_Test::$tmp), so a fixture can
+// write wp-content/plugins/... with $t->file() and have it removed after the case.
+define( 'WP_CONTENT_DIR', sys_get_temp_dir() . '/omens-audit-test-' . getmypid() . '/wp-content' );
 define( 'WPMU_PLUGIN_DIR', WP_CONTENT_DIR . '/mu-plugins' );
 define( 'WP_PLUGIN_DIR', WP_CONTENT_DIR . '/plugins' );
 
