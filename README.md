@@ -131,6 +131,7 @@ The plugin updates itself from GitHub releases through Plugin Update Checker (ve
 ## Developing
 
 - `tools/fixtures.sh [filter]` runs every check's fixtures under `tests/checks/`, one PHP process per case against the WordPress stubs in `tests/bootstrap.php`, and fails if any registered check lacks a `fires` and a `clean` case. The routing rule has one fixture per branch (in the `a11y.img-alt-missing` and `a11y.link-empty` files).
+- A fixture that needs malicious-looking text (a fake web shell) builds it with `omens_test_shell()` from `tests/bootstrap.php`, never as a literal, and no fixture uses `eval()`. Spelled out, those strings are scanner signatures, and a source copy of this folder on a server gets flagged (Jetpack Protect did on November 18, 2026).
 - `tools/smoke.sh ~/Studio/<site>` symlinks the checkout into a local site and runs the M1 assertions (activation, the three commands, schema, dry run, fingerprint stability, foreign-run refusal, cron, uninstall). Local sites only.
 - `php -l` on every file and `phpcs` (WordPress-Extra, `phpcs.xml.dist`) before a commit.
 - State: one option, `omens_audit_last_run`, not autoloaded, keyed by host and environment. If a change needs more state than that, stop and reread the plan.
