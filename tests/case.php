@@ -42,7 +42,7 @@ class Omens_Audit_Test {
 	public function cleanup() {
 		if ( is_dir( $this->tmp ) ) {
 			$it = new RecursiveIteratorIterator( new RecursiveDirectoryIterator( $this->tmp, FilesystemIterator::SKIP_DOTS ), RecursiveIteratorIterator::CHILD_FIRST );
-			foreach ( $it as $f ) { $f->isDir() ? rmdir( $f->getPathname() ) : unlink( $f->getPathname() ); }
+			foreach ( $it as $f ) { $f->isDir() && ! $f->isLink() ? rmdir( $f->getPathname() ) : unlink( $f->getPathname() ); }
 			rmdir( $this->tmp );
 		}
 	}
